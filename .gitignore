@@ -1,0 +1,33 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+models/**/*.joblib
+
+# Optional AI part (docs/chatbot_rag_finetune.md): large downloads with their own licences, model weights, caches
+data/raw/external/finetune/**/*.parquet
+data/raw/external/finetune/**/*.json
+data/raw/external/**/.cache/
+models/chat-lora/**/*.safetensors
+models/chat-lora/checkpoints/
+data/processed/rag_index.npz
+data/processed/finetune/
+# reference originals (large; GHG Protocol PDF is copyrighted): the extracted passages are committed in
+# data/processed/reference_cache.json, so the knowledge base is identical without them (see data/raw/external/README.md)
+data/raw/external/reference/*.pdf
+data/raw/external/reference/ember_*.csv
+
+# Upload workspace of `greenledger serve` (another company's exports and their outputs)
+workspace/
+
+# ---- Public GitHub repository: keep data, dot-files and assistant notes out ----
+# Case data (sample data ALTYCA, sprintd Basel 2026) and everything copied from it; see README "Data"
+data/
+app/downloads/inputs/
+# Dot-files and dot-folders (editor, tool and environment settings); only this file stays
+.*
+!.gitignore
+# Notes for the coding assistant
+CLAUDE.md
+**/CLAUDE.md

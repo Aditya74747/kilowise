@@ -1,0 +1,60 @@
+[project]
+name = "greenledger"
+version = "0.1.0"
+description = "GreenLedger: cost, energy and location-based CO2 ledger for an SME digital estate (sprintd Basel 2026, Green AI & Data)"
+readme = "README.md"
+authors = [
+    { name = "Claude", email = "noreply@anthropic.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+]
+
+[project.scripts]
+greenledger = "greenledger:main"
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+ml = [
+    "joblib>=1.6.0",
+    "scikit-learn>=1.9.1",
+]
+# Optional: RAG chatbot + LoRA fine-tuning (docs/chatbot_rag_finetune.md). Heavy (PyTorch), so not a default group:
+#   uv sync --group finetune      then   uv run --group finetune greenledger finetune
+finetune = [
+    "torch>=2.6",
+    "transformers>=4.50",
+    "peft>=0.15",
+    "accelerate>=1.5",
+    "sentence-transformers>=4.0",
+    "pyarrow>=19",
+    "pypdf>=5.4",
+]
+
+# Optional: pull from cloud and AI accounts (Data sources > Connect your accounts). Not needed for files or FOCUS:
+#   uv sync --group connectors
+connectors = [
+    "boto3>=1.35",
+    "anthropic>=1.0",
+]
+
+[tool.uv]
+# `uv sync` installs dev + ml by default; `uv sync --no-group ml` gives the core app only (ML step is then skipped).
+default-groups = ["dev", "ml"]
+
+# PyTorch with CUDA on Windows/Linux (NVIDIA GPU); macOS gets the regular PyPI wheel (CPU / Apple MPS).
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform != 'darwin'" }]

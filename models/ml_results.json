@@ -1,0 +1,1478 @@
+{
+ "fingerprint": "4554dbfafc945566",
+ "seed": 42,
+ "classifier": {
+  "task": "Will an always-on server run idle (running > 84 h/week at < 5 % CPU) in most of the next 4 weeks?",
+  "population": "always-on servers (uptime > 84 h/week over the last 4 weeks); dr-failover excluded (W5)",
+  "metric": "F1 (positive class = idle), accuracy secondary",
+  "split": {
+   "train": "2024-10-28 – 2026-01-26 (1505 server-weeks)",
+   "validation": "2026-03-02 – 2026-05-04 (274)",
+   "test": "2026-06-01 – 2026-08-03 (267)"
+  },
+  "positive_share": 0.2608501118568233,
+  "leaderboard": [
+   {
+    "model": "Baseline: persistence (idle this week)",
+    "kind": "baseline",
+    "val": {
+     "f1": 0.8253968253968254,
+     "accuracy": 0.9197080291970803,
+     "precision": 0.9285714285714286,
+     "recall": 0.7428571428571429
+    },
+    "test": {
+     "f1": 0.8589743589743589,
+     "accuracy": 0.9176029962546817,
+     "precision": 0.9054054054054054,
+     "recall": 0.8170731707317073
+    },
+    "fit_s": 0.0,
+    "selected": true
+   },
+   {
+    "model": "Baseline: rule (idle in ≥ 2 of the last 4 weeks)",
+    "kind": "baseline",
+    "val": {
+     "f1": 0.8225806451612904,
+     "accuracy": 0.9197080291970803,
+     "precision": 0.9444444444444444,
+     "recall": 0.7285714285714285
+    },
+    "test": {
+     "f1": 0.9056603773584906,
+     "accuracy": 0.9438202247191011,
+     "precision": 0.935064935064935,
+     "recall": 0.8780487804878049
+    },
+    "fit_s": 0.0,
+    "selected": false
+   },
+   {
+    "model": "Logistic regression",
+    "kind": "ml",
+    "val": {
+     "f1": 0.7304347826086957,
+     "accuracy": 0.8868613138686131,
+     "precision": 0.9333333333333333,
+     "recall": 0.6
+    },
+    "fit_s": 0.017,
+    "selected": false
+   },
+   {
+    "model": "Decision tree",
+    "kind": "ml",
+    "val": {
+     "f1": 0.6941176470588235,
+     "accuracy": 0.8102189781021898,
+     "precision": 0.59,
+     "recall": 0.8428571428571429
+    },
+    "fit_s": 0.011,
+    "selected": false
+   },
+   {
+    "model": "k-nearest neighbours",
+    "kind": "ml",
+    "val": {
+     "f1": 0.7272727272727273,
+     "accuracy": 0.8905109489051095,
+     "precision": 1.0,
+     "recall": 0.5714285714285714
+    },
+    "fit_s": 0.03,
+    "selected": false
+   },
+   {
+    "model": "Random forest",
+    "kind": "ml",
+    "val": {
+     "f1": 0.7692307692307693,
+     "accuracy": 0.9014598540145985,
+     "precision": 0.9574468085106383,
+     "recall": 0.6428571428571429
+    },
+    "fit_s": 0.31,
+    "selected": false
+   },
+   {
+    "model": "Gradient boosting",
+    "kind": "ml",
+    "val": {
+     "f1": 0.7719298245614035,
+     "accuracy": 0.9051094890510949,
+     "precision": 1.0,
+     "recall": 0.6285714285714286
+    },
+    "fit_s": 0.296,
+    "selected": false
+   }
+  ],
+  "selected": "Baseline: persistence (idle this week)",
+  "kept_ml": false,
+  "reason": "No model beat the baseline on validation F1 (0.825); the baseline is kept.",
+  "importance": [],
+  "watch_list": [
+   {
+    "server_id": "build-agent-old",
+    "type": "dev",
+    "vcpu": 4,
+    "cpu_avg_pct": 0.4,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "gpu-ml-01",
+    "type": "ml",
+    "vcpu": 8,
+    "cpu_avg_pct": 4.3,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "migration-alt",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "poc-ki-2024",
+    "type": "poc",
+    "vcpu": 4,
+    "cpu_avg_pct": 0.2,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "test-02",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 4.3,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "test-03",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 2.5,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "test-01",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 4.4,
+    "uptime_h": 168.0,
+    "prob": 1.0,
+    "flag": true,
+    "note": ""
+   },
+   {
+    "server_id": "app-05",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 35.7,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-02",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 36.3,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-09",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 41.4,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-04",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 36.5,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-03",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 32.4,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-07",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 41.2,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-12",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 42.9,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-11",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 45.5,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-10",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 40.5,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "dr-failover",
+    "type": "dr",
+    "vcpu": 4,
+    "cpu_avg_pct": 0.5,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": "protected (W5, T-1094): never flagged"
+   },
+   {
+    "server_id": "qa-regression-01",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 11.0,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-06",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 28.9,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-08",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 39.6,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "app-01",
+    "type": "prod",
+    "vcpu": 4,
+    "cpu_avg_pct": 29.2,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "sbx-alex-07",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 11.9,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-alex-01",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 0.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "qa-regression-02",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 7.7,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "sbx-alex-13",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 9.9,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-bea-14",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 7.6,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-alex-19",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 7.2,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-bea-02",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 10.6,
+    "uptime_h": 11.1,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-bea-08",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 5.3,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-chris-15",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 1.4,
+    "uptime_h": 7.1,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-chris-21",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 3.7,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-dana-04",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 11.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-dana-10",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 5.4,
+    "uptime_h": 9.7,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-dana-16",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 7.9,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-bea-20",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 2.3,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-chris-03",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 3.4,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-chris-09",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 11.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-eli-11",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 9.6,
+    "uptime_h": 4.4,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-eli-05",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 4.3,
+    "uptime_h": 6.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-dana-22",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 4.5,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-eli-17",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 4.6,
+    "uptime_h": 7.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-fay-12",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 3.4,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-fay-06",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 2.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-fay-24",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 1.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-eli-23",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 7.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "sbx-fay-18",
+    "type": "dev",
+    "vcpu": 0,
+    "cpu_avg_pct": 0.1,
+    "uptime_h": 9.8,
+    "prob": 0.0,
+    "flag": false,
+    "note": "part-time server (not always on): not a candidate"
+   },
+   {
+    "server_id": "test-04",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 6.0,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "test-05",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 6.5,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "test-06",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 8.3,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "test-07",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 5.1,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "test-08",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 7.1,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "uat-portal",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 11.1,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   },
+   {
+    "server_id": "uat-shop",
+    "type": "test",
+    "vcpu": 4,
+    "cpu_avg_pct": 7.0,
+    "uptime_h": 168.0,
+    "prob": 0.0,
+    "flag": false,
+    "note": ""
+   }
+  ],
+  "excluded": [
+   "dr-failover"
+  ],
+  "latest_week": "2026-08-31"
+ },
+ "forecaster": {
+  "task": "Daily cost per bucket, forecast to August 2029",
+  "metric": "MAE (CHF per day), MAPE secondary; walk-forward, 3 folds of 91 days",
+  "folds": [
+   "2025-12-02 – 2026-03-02",
+   "2026-03-03 – 2026-06-01",
+   "2026-06-02 – 2026-08-31"
+  ],
+  "note": "Validation: 91 days ahead. For the 3-year forecast the time trend is frozen at the last observed day; growth comes from known drivers in the features (24 nodes from Oct 2026, calendar). Subscriptions and SaaS are monthly with known price steps: they keep the driver-based forecast.",
+  "buckets": {
+   "cloud": {
+    "leaderboard": [
+     {
+      "model": "Baseline: seasonal naive (same weekday last year)",
+      "kind": "baseline",
+      "mae": 87.66194588639293,
+      "mape": 0.21745135321052245,
+      "total_err": [
+       -0.10515263263266406,
+       -0.12641348806621666,
+       -0.07650406918454167
+      ],
+      "folds": [
+       {
+        "mae": 95.70824216266628,
+        "mape": 0.2399662916122745,
+        "total_err": -0.10515263263266406
+       },
+       {
+        "mae": 99.44007074216047,
+        "mape": 0.2451675493321555,
+        "total_err": -0.12641348806621666
+       },
+       {
+        "mae": 67.83752475435206,
+        "mape": 0.16722021868713738,
+        "total_err": -0.07650406918454167
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Linear trend",
+      "kind": "ml",
+      "mae": 61.62753748244816,
+      "mape": 0.1545169907953807,
+      "total_err": [
+       0.0615202807285915,
+       0.06502374651187459,
+       0.03522693779931907
+      ],
+      "folds": [
+       {
+        "mae": 68.39753639798668,
+        "mape": 0.17553616449278395,
+        "total_err": 0.0615202807285915
+       },
+       {
+        "mae": 69.38232298437741,
+        "mape": 0.1713008839919566,
+        "total_err": 0.06502374651187459
+       },
+       {
+        "mae": 47.1027530649804,
+        "mape": 0.1167139239014016,
+        "total_err": 0.03522693779931907
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Ridge regression",
+      "kind": "ml",
+      "mae": 58.83179387297891,
+      "mape": 0.14371984339547936,
+      "total_err": [
+       0.03773934126675815,
+       0.05308648546711914,
+       0.03440750834088169
+      ],
+      "folds": [
+       {
+        "mae": 63.33916033755773,
+        "mape": 0.15564707771134023,
+        "total_err": 0.03773934126675815
+       },
+       {
+        "mae": 66.57760827107775,
+        "mape": 0.16043841017956653,
+        "total_err": 0.05308648546711914
+       },
+       {
+        "mae": 46.57861301030125,
+        "mape": 0.11507404229553136,
+        "total_err": 0.03440750834088169
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "k-nearest neighbours",
+      "kind": "ml",
+      "mae": 57.7693794098154,
+      "mape": 0.13327816212980262,
+      "total_err": [
+       0.0068198023831118615,
+       -0.008114819972721565,
+       -0.007095480312335423
+      ],
+      "folds": [
+       {
+        "mae": 67.91867011615851,
+        "mape": 0.15991164976683828,
+        "total_err": 0.0068198023831118615
+       },
+       {
+        "mae": 62.11184626771613,
+        "mape": 0.14094163765354814,
+        "total_err": -0.008114819972721565
+       },
+       {
+        "mae": 43.27762184557156,
+        "mape": 0.09898119896902147,
+        "total_err": -0.007095480312335423
+       }
+      ],
+      "selected": true
+     },
+     {
+      "model": "Random forest",
+      "kind": "ml",
+      "mae": 132.11446563593427,
+      "mape": 0.3821488599801118,
+      "total_err": [
+       0.29380525043069183,
+       0.2194423730391577,
+       0.2844732709204212
+      ],
+      "folds": [
+       {
+        "mae": 146.54931856777978,
+        "mape": 0.431240308693566,
+        "total_err": 0.29380525043069183
+       },
+       {
+        "mae": 123.61716563304854,
+        "mape": 0.34480742200325837,
+        "total_err": 0.2194423730391577
+       },
+       {
+        "mae": 126.17691270697445,
+        "mape": 0.37039884924351096,
+        "total_err": 0.2844732709204212
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Gradient boosting",
+      "kind": "ml",
+      "mae": 72.11157212691874,
+      "mape": 0.1766045340566744,
+      "total_err": [
+       0.038404089755467385,
+       0.04123518364657275,
+       0.04265404965024344
+      ],
+      "folds": [
+       {
+        "mae": 75.3720034447519,
+        "mape": 0.18120530329689302,
+        "total_err": 0.038404089755467385
+       },
+       {
+        "mae": 80.57907299091504,
+        "mape": 0.1985160349393655,
+        "total_err": 0.04123518364657275
+       },
+       {
+        "mae": 60.383639945089264,
+        "mape": 0.1500922639337646,
+        "total_err": 0.04265404965024344
+       }
+      ],
+      "selected": false
+     }
+    ],
+    "selected": "k-nearest neighbours",
+    "kept_ml": true,
+    "baseline_year": 121581.3777153375,
+    "years": [
+     {
+      "year": "2026/27",
+      "mid": 122579.43377933418,
+      "low": 116450.46209036747,
+      "high": 128708.4054683009
+     },
+     {
+      "year": "2027/28",
+      "mid": 122994.68471957122,
+      "low": 114297.6471580602,
+      "high": 131691.72228108224
+     },
+     {
+      "year": "2028/29",
+      "mid": 123300.05389934618,
+      "low": 112621.95600286375,
+      "high": 133978.1517958286
+     }
+    ],
+    "reason": "Lowest walk-forward MAE (CHF 58/day) and better than seasonal naive (CHF 88/day).",
+    "per_node": false
+   },
+   "dp-prod": {
+    "leaderboard": [
+     {
+      "model": "Baseline: seasonal naive (same weekday last year)",
+      "kind": "baseline",
+      "mae": 48.38572283272284,
+      "mape": 0.18308147096940217,
+      "total_err": [
+       -0.14237662271746598,
+       -0.20217403365027087,
+       -0.20481402859705222
+      ],
+      "folds": [
+       {
+        "mae": 37.41901098901099,
+        "mape": 0.142898532219612,
+        "total_err": -0.14237662271746598
+       },
+       {
+        "mae": 53.46082417582418,
+        "mape": 0.20185360951556508,
+        "total_err": -0.20217403365027087
+       },
+       {
+        "mae": 54.27733333333333,
+        "mape": 0.20449227117302934,
+        "total_err": -0.20481402859705222
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Linear trend",
+      "kind": "ml",
+      "mae": 4.300481163869431,
+      "mape": 0.01666411779555654,
+      "total_err": [
+       0.002760294188402179,
+       0.002184804350190195,
+       -0.0009970887193571087
+      ],
+      "folds": [
+       {
+        "mae": 4.07349735252519,
+        "mape": 0.016626945512064544,
+        "total_err": 0.002760294188402179
+       },
+       {
+        "mae": 4.428207130410548,
+        "mape": 0.01681506969647271,
+        "total_err": 0.002184804350190195
+       },
+       {
+        "mae": 4.399739008672555,
+        "mape": 0.01655033817813236,
+        "total_err": -0.0009970887193571087
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Ridge regression",
+      "kind": "ml",
+      "mae": 4.295208970685199,
+      "mape": 0.016637823593662806,
+      "total_err": [
+       0.00224193465892486,
+       0.001999942464634419,
+       -0.0010954431769242268
+      ],
+      "folds": [
+       {
+        "mae": 4.062873805263102,
+        "mape": 0.01657266142915737,
+        "total_err": 0.00224193465892486
+       },
+       {
+        "mae": 4.422308101371806,
+        "mape": 0.016789427921218843,
+        "total_err": 0.001999942464634419
+       },
+       {
+        "mae": 4.4004450054206865,
+        "mape": 0.01655138143061221,
+        "total_err": -0.0010954431769242268
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "k-nearest neighbours",
+      "kind": "ml",
+      "mae": 4.345631054131055,
+      "mape": 0.016837089568596617,
+      "total_err": [
+       0.0019621869765873434,
+       -0.0007503499652268264,
+       -0.0013067954790443315
+      ],
+      "folds": [
+       {
+        "mae": 4.151629120879125,
+        "mape": 0.016988764624295296,
+        "total_err": 0.0019621869765873434
+       },
+       {
+        "mae": 4.4084862637362585,
+        "mape": 0.016690874671324102,
+        "total_err": -0.0007503499652268264
+       },
+       {
+        "mae": 4.476777777777783,
+        "mape": 0.01683162941017045,
+        "total_err": -0.0013067954790443315
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Random forest",
+      "kind": "ml",
+      "mae": 4.369523392424505,
+      "mape": 0.017002267643742953,
+      "total_err": [
+       0.007777926204439067,
+       0.0015201629610350764,
+       -0.0010658794658925386
+      ],
+      "folds": [
+       {
+        "mae": 4.367423383337473,
+        "mape": 0.017983522613482,
+        "total_err": 0.007777926204439067
+       },
+       {
+        "mae": 4.362214211895378,
+        "mape": 0.016555026282861714,
+        "total_err": 0.0015201629610350764
+       },
+       {
+        "mae": 4.378932582040666,
+        "mape": 0.01646825403488515,
+        "total_err": -0.0010658794658925386
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Gradient boosting",
+      "kind": "ml",
+      "mae": 4.2881550305519545,
+      "mape": 0.016642110367036084,
+      "total_err": [
+       0.002908597899316412,
+       0.0029117419636870423,
+       -0.0005650638274153907
+      ],
+      "folds": [
+       {
+        "mae": 4.117940745129531,
+        "mape": 0.016852435075046288,
+        "total_err": 0.002908597899316412
+       },
+       {
+        "mae": 4.437114264750052,
+        "mape": 0.016861075021225854,
+        "total_err": 0.0029117419636870423
+       },
+       {
+        "mae": 4.30941008177628,
+        "mape": 0.016212821004836106,
+        "total_err": -0.0005650638274153907
+       }
+      ],
+      "selected": true
+     }
+    ],
+    "selected": "Gradient boosting",
+    "kept_ml": true,
+    "baseline_year": 90089.34,
+    "years": [
+     {
+      "year": "2026/27",
+      "mid": 114032.5395472118,
+      "low": 108330.9125698512,
+      "high": 119734.16652457239
+     },
+     {
+      "year": "2027/28",
+      "mid": 115930.7105932926,
+      "low": 107733.17143246338,
+      "high": 124128.24975412185
+     },
+     {
+      "year": "2028/29",
+      "mid": 115615.94409372131,
+      "low": 105603.3096269529,
+      "high": 125628.57856048971
+     }
+    ],
+    "reason": "Lowest walk-forward MAE (CHF 4/day) and better than seasonal naive (CHF 48/day).",
+    "per_node": true
+   },
+   "servers": {
+    "leaderboard": [
+     {
+      "model": "Baseline: seasonal naive (same weekday last year)",
+      "kind": "baseline",
+      "mae": 33.095326836505045,
+      "mape": 0.17069925124118715,
+      "total_err": [
+       -0.36843300738672036,
+       -0.09161563880176438,
+       -0.015755857030107068
+      ],
+      "folds": [
+       {
+        "mae": 71.56263408060283,
+        "mape": 0.36605779572817776,
+        "total_err": -0.36843300738672036
+       },
+       {
+        "mae": 21.68830152740134,
+        "mape": 0.1135753937788964,
+        "total_err": -0.09161563880176438
+       },
+       {
+        "mae": 6.035044901510961,
+        "mape": 0.03246456421648733,
+        "total_err": -0.015755857030107068
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Linear trend",
+      "kind": "ml",
+      "mae": 6.188451264389523,
+      "mape": 0.03602248830028409,
+      "total_err": [
+       0.05644292866201406,
+       0.012388803229904433,
+       0.01401545275451821
+      ],
+      "folds": [
+       {
+        "mae": 10.941722865052744,
+        "mape": 0.06311991070414277,
+        "total_err": 0.05644292866201406
+       },
+       {
+        "mae": 3.8675239226206886,
+        "mape": 0.023686451921611024,
+        "total_err": 0.012388803229904433
+       },
+       {
+        "mae": 3.7561070054951364,
+        "mape": 0.021261102275098472,
+        "total_err": 0.01401545275451821
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Ridge regression",
+      "kind": "ml",
+      "mae": 6.831118911160853,
+      "mape": 0.039363317609043935,
+      "total_err": [
+       0.06327271555599423,
+       0.016287604275297962,
+       0.017381670741674737
+      ],
+      "folds": [
+       {
+        "mae": 12.2526680391841,
+        "mape": 0.06991535152382324,
+        "total_err": 0.06327271555599423
+       },
+       {
+        "mae": 4.136069467232865,
+        "mape": 0.025115066084073694,
+        "total_err": 0.016287604275297962
+       },
+       {
+        "mae": 4.104619227065593,
+        "mape": 0.02305953521923487,
+        "total_err": 0.017381670741674737
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "k-nearest neighbours",
+      "kind": "ml",
+      "mae": 5.706417354200004,
+      "mape": 0.032770339409090805,
+      "total_err": [
+       0.003804476421430225,
+       -0.014218015081201685,
+       -0.00646323447581143
+      ],
+      "folds": [
+       {
+        "mae": 6.0128277019515854,
+        "mape": 0.036687466082374304,
+        "total_err": 0.003804476421430225
+       },
+       {
+        "mae": 6.535022314863842,
+        "mape": 0.036451616724709514,
+        "total_err": -0.014218015081201685
+       },
+       {
+        "mae": 4.571402045784584,
+        "mape": 0.0251719354201886,
+        "total_err": -0.00646323447581143
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Random forest",
+      "kind": "ml",
+      "mae": 5.719812980548305,
+      "mape": 0.03290340913103138,
+      "total_err": [
+       0.00236978568792634,
+       -0.02099298640052294,
+       -0.003171878054268551
+      ],
+      "folds": [
+       {
+        "mae": 5.868459433577128,
+        "mape": 0.0359433708042846,
+        "total_err": 0.00236978568792634
+       },
+       {
+        "mae": 7.431258499542739,
+        "mape": 0.04117564449841021,
+        "total_err": -0.02099298640052294
+       },
+       {
+        "mae": 3.8597210085250495,
+        "mape": 0.021591212090399336,
+        "total_err": -0.003171878054268551
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Gradient boosting",
+      "kind": "ml",
+      "mae": 4.8251400788101995,
+      "mape": 0.028521016950083272,
+      "total_err": [
+       0.005615145971164415,
+       -0.006880876679476899,
+       0.002536432457847182
+      ],
+      "folds": [
+       {
+        "mae": 5.560264818776718,
+        "mape": 0.03446363309099531,
+        "total_err": 0.005615145971164415
+       },
+       {
+        "mae": 5.474600750595571,
+        "mape": 0.031551764187356855,
+        "total_err": -0.006880876679476899
+       },
+       {
+        "mae": 3.4405546670583087,
+        "mape": 0.01954765357189765,
+        "total_err": 0.002536432457847182
+       }
+      ],
+      "selected": true
+     }
+    ],
+    "selected": "Gradient boosting",
+    "kept_ml": true,
+    "baseline_year": 71323.09943182273,
+    "years": [
+     {
+      "year": "2026/27",
+      "mid": 72370.46459010078,
+      "low": 68751.94136059574,
+      "high": 75988.98781960581
+     },
+     {
+      "year": "2027/28",
+      "mid": 72568.39674508078,
+      "low": 67437.03620125254,
+      "high": 77699.75728890902
+     },
+     {
+      "year": "2028/29",
+      "mid": 72371.57046283003,
+      "low": 66104.00860957139,
+      "high": 78639.13231608867
+     }
+    ],
+    "reason": "Lowest walk-forward MAE (CHF 5/day) and better than seasonal naive (CHF 33/day).",
+    "per_node": false
+   },
+   "ai": {
+    "leaderboard": [
+     {
+      "model": "Baseline: seasonal naive (same weekday last year)",
+      "kind": "baseline",
+      "mae": 48.83627199050949,
+      "mape": 0.4473829590637635,
+      "total_err": [
+       -0.3894431538864842,
+       -0.4418654045702316,
+       -0.4934519541878821
+      ],
+      "folds": [
+       {
+        "mae": 35.38857802197803,
+        "mape": 0.3767447457482948,
+        "total_err": -0.3894431538864842
+       },
+       {
+        "mae": 52.38665113636364,
+        "mape": 0.5129575370385093,
+        "total_err": -0.4418654045702316
+       },
+       {
+        "mae": 58.733586813186804,
+        "mape": 0.45244659440448654,
+        "total_err": -0.4934519541878821
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Linear trend",
+      "kind": "ml",
+      "mae": 24.179297016502147,
+      "mape": 0.44460224397635867,
+      "total_err": [
+       0.02908547463625366,
+       -0.05674435988522519,
+       0.0035965179081642873
+      ],
+      "folds": [
+       {
+        "mae": 16.535773824947665,
+        "mape": 0.3986449924346444,
+        "total_err": 0.02908547463625366
+       },
+       {
+        "mae": 26.402217160209673,
+        "mape": 0.4830573316873425,
+        "total_err": -0.05674435988522519
+       },
+       {
+        "mae": 29.599900064349104,
+        "mape": 0.45210440780708916,
+        "total_err": 0.0035965179081642873
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Ridge regression",
+      "kind": "ml",
+      "mae": 24.77149625436095,
+      "mape": 0.443097514193682,
+      "total_err": [
+       0.009463765658692891,
+       -0.06202065370641807,
+       -0.014550258284716566
+      ],
+      "folds": [
+       {
+        "mae": 17.48858338120332,
+        "mape": 0.3975533410967909,
+        "total_err": 0.009463765658692891
+       },
+       {
+        "mae": 27.344335778498166,
+        "mape": 0.4956870487445869,
+        "total_err": -0.06202065370641807
+       },
+       {
+        "mae": 29.48156960338136,
+        "mape": 0.436052152739668,
+        "total_err": -0.014550258284716566
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "k-nearest neighbours",
+      "kind": "ml",
+      "mae": 19.034400203546454,
+      "mape": 0.23242316238004698,
+      "total_err": [
+       -0.029357995666817183,
+       -0.15116322208707056,
+       -0.05828669661310226
+      ],
+      "folds": [
+       {
+        "mae": 12.26259296703297,
+        "mape": 0.21848276890851298,
+        "total_err": -0.029357995666817183
+       },
+       {
+        "mae": 24.989738522727272,
+        "mape": 0.3256787393913431,
+        "total_err": -0.15116322208707056
+       },
+       {
+        "mae": 19.850869120879118,
+        "mape": 0.15310797884028482,
+        "total_err": -0.05828669661310226
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Random forest",
+      "kind": "ml",
+      "mae": 15.7993770008202,
+      "mape": 0.16745479279807282,
+      "total_err": [
+       0.17583445141802523,
+       -0.12567604012072198,
+       0.10180296371899988
+      ],
+      "folds": [
+       {
+        "mae": 15.537038292340075,
+        "mape": 0.2369016804679569,
+        "total_err": 0.17583445141802523
+       },
+       {
+        "mae": 13.551716331329953,
+        "mape": 0.10465508730777273,
+        "total_err": -0.12567604012072198
+       },
+       {
+        "mae": 18.309376378790574,
+        "mape": 0.1608076106184888,
+        "total_err": 0.10180296371899988
+       }
+      ],
+      "selected": false
+     },
+     {
+      "model": "Gradient boosting",
+      "kind": "ml",
+      "mae": 13.765575654733505,
+      "mape": 0.16198639277309915,
+      "total_err": [
+       0.10753249462129988,
+       -0.12435414703766223,
+       0.07190248717625902
+      ],
+      "folds": [
+       {
+        "mae": 10.984430270383994,
+        "mape": 0.24184168086220004,
+        "total_err": 0.10753249462129988
+       },
+       {
+        "mae": 14.055963028600734,
+        "mape": 0.10780406968111525,
+        "total_err": -0.12435414703766223
+       },
+       {
+        "mae": 16.256333665215784,
+        "mape": 0.1363134277759822,
+        "total_err": 0.07190248717625902
+       }
+      ],
+      "selected": true
+     }
+    ],
+    "selected": "Gradient boosting",
+    "kept_ml": true,
+    "baseline_year": 35961.395800000006,
+    "years": [
+     {
+      "year": "2026/27",
+      "mid": 48351.30968461091,
+      "low": 42338.623810627265,
+      "high": 54363.995558594564
+     },
+     {
+      "year": "2027/28",
+      "mid": 48512.5207691727,
+      "low": 39980.94774313804,
+      "high": 57044.09379520736
+     },
+     {
+      "year": "2028/29",
+      "mid": 48347.39732472654,
+      "low": 37933.96257523538,
+      "high": 58760.832074217695
+     }
+    ],
+    "reason": "Lowest walk-forward MAE (CHF 14/day) and better than seasonal naive (CHF 49/day).",
+    "per_node": false
+   }
+  }
+ },
+ "train_seconds": 5.1
+}
