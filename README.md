@@ -8,7 +8,7 @@ measures that reaches the targets without switching off anything critical.
 
 Built by team **Mini Militia** for the *Green AI & Data* case (ALTYCA × Basel 2037) at **sprintd Basel 2026**.
 
-![Kilowise leadership dashboard](screenshots/01-overview.png)
+![Kilowise leadership dashboard](screenshots/readme/overview.jpg)
 
 ## The result
 
@@ -60,11 +60,11 @@ no external requests, so `app/index.html` also opens straight from disk.
 changes that only happen when you click, and it refuses orders hidden in the data or typed into the chat.
 
 <p>
-  <img src="screenshots/02-overview-it-team.png" width="49%" alt="IT team dashboard">
-  <img src="screenshots/04-safeguards.png" width="49%" alt="Safeguards">
+  <img src="screenshots/readme/action-plan.jpg" width="49%" alt="Action plan: each measure in plain words, with live target gauges">
+  <img src="screenshots/readme/safeguards.jpg" width="49%" alt="Safeguards: every schedule replayed against real job runs; X1 is stopped">
 </p>
 
-More screenshots in [screenshots/](screenshots/README.md).
+Every page in full: [screenshots/](screenshots/README.md).
 
 ## The package
 
