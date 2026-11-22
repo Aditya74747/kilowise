@@ -201,12 +201,13 @@ function hbars(rows, key, fmt, color = 'var(--s1)') {
   return `<div class="hbars">` + rows.map(r => `<div class="hbar" data-tip="${esc(r.label)}: ${esc(fmt(r[key]))}"><span class="lab">${esc(r.label)}</span>
     <span class="track"><span class="fill" style="width:${Math.max(1, 100 * r[key] / max)}%;background:${r.color || color}"></span></span><span class="val">${fmt(r[key])}</span></div>`).join('') + `</div>`;
 }
-function pairBars(rows, labels, fmt = n0) {
+// a = whole (light, behind), b = part (dark, in front). split: two values side by side (neither contains the other)
+function pairBars(rows, labels, fmt = n0, split = false) {
   const max = Math.max(...rows.map(r => Math.max(r.a, r.b)), 1);
   return `<div class="legend"><span><span class="sw" style="background:#bcd6f6"></span>${esc(labels[0])}</span><span><span class="sw" style="background:var(--brand)"></span>${esc(labels[1])}</span></div>
   <div class="hbars">` + rows.map(r => `<div class="hbar" data-tip="${esc(r.label)}: ${esc(labels[0])} ${fmt(r.a)} · ${esc(labels[1])} ${fmt(r.b)}"><span class="lab">${esc(r.label)}</span>
-    <span class="track"><span class="fill" style="width:${100 * r.a / max}%;background:#bcd6f6"></span><span class="fill2" style="width:${100 * r.b / max}%"></span></span>
-    <span class="val">${fmt(r.b)} / ${fmt(r.a)}</span></div>`).join('') + `</div>`;
+    <span class="track${split ? ' split' : ''}"><span class="fill" style="width:${100 * r.a / max}%;background:#bcd6f6"></span><span class="fill2" style="width:${100 * r.b / max}%"></span></span>
+    <span class="val">${split ? `${fmt(r.a)} / ${fmt(r.b)}` : `${fmt(r.b)} / ${fmt(r.a)}`}</span></div>`).join('') + `</div>`;
 }
 function wireHoverTips(root) { root.querySelectorAll('[data-tip]').forEach(n => { n.onmousemove = e => showTip(e, esc(n.dataset.tip)); n.onmouseleave = hideTip; }); }
 
@@ -680,7 +681,7 @@ function ceoBody(p, st) {
     <div class="qa-g">${QA.map(([q, a, g]) => `<button class="qa-i" data-go="${g}"><b>${esc(q)}</b><span>${esc(a)}</span></button>`).join('')}</div></section>`;
 }
 function itBody(p) {
-  const rc = planChecks(p), rows = resRows().sort((a, b) => b.co2 - a.co2).slice(0, 10);
+  const rc = planChecks(p), rows = resMerged().sort((a, b) => b.co2 - a.co2).slice(0, 10);
   const B = D.baseline.normalised, totK = B[kwhk()], totC = B[co2k()], warn = D.dq.filter(e => e.severity === 'warn').length;
   const byRes = id => D.measures.filter(m => S.on.has(m.id) && String(m.resource).split(/[ ,/+]+/).includes(id));
   const find = id => D.findings.find(f => f.resource_id === id);
@@ -697,7 +698,7 @@ function itBody(p) {
   <div class="kgrid">
     ${kcard({ k: 'Electricity a year', v: kwh(totK), chip: `${cut(p.kwh / totK)}`, s: `${kwh(p.kwh)} saved by the plan`, sp: spark(mw, 'var(--s4)'), tip: sparkTip(mw, kwh) })}
     ${kcard({ k: isMarket() ? 'CO₂ a year (market)' : 'CO₂ a year', v: kg(totC), chip: `${cut(p.co2 / totC)}`, s: `${n0(totC / totK * 1000)} g per kWh on average`, sp: spark(mk, 'var(--s3)'), tip: sparkTip(mk, kg) })}
-    ${kcard({ k: 'Resources tracked', v: n0(D.by_resource.length), s: `from ${D.inputs ? D.inputs.filter(i => i.present).length : 28} exports` })}
+    ${kcard({ k: 'Resources tracked', v: n0(nResources()), s: `from ${D.inputs ? D.inputs.filter(i => i.present).length : 28} exports` })}
     ${kcard({ k: 'Job runs replayed', v: n0(rc.runs), chip: `${rc.conflicts} conflicts`, chipOk: !rc.conflicts, s: x1 ? `X1 refused: ${n0(x1.conflicts)} conflicts` : '' })}
     ${kcard({ k: 'Likely idle servers', v: D.ml ? n0(watch.length) : '–', s: 'next 4 weeks, from monitoring' })}
     ${kcard({ k: 'Needs a look', v: n0(warn + D.injections.length), s: `${warn} data issues · ${D.injections.length} quarantined instructions` })}
@@ -717,7 +718,7 @@ function itBody(p) {
         <div><span>Flexible jobs, shifted</span><b>${X.co2_now > 0 ? '−' + pct(1 - X.co2_best / X.co2_now) : '–'}</b><small>of their CO₂</small></div></div>
       <p class="small muted" style="margin:8px 0 0">${dot('assumed')} ${esc(X.hourly_source)}</p></section>
   </div>
-  <section class="block" style="margin-top:20px"><div class="block-h"><h2>Hot list: the 10 largest CO₂ sources</h2><button class="linkish" data-go="connect">All ${D.by_resource.length} resources</button></div>
+  <section class="block" style="margin-top:20px"><div class="block-h"><h2>Hot list: the 10 largest CO₂ sources</h2><button class="linkish" data-go="connect">All ${nResources()} resources</button></div>
     <div class="tscroll"><table class="hot"><thead><tr><th>Resource</th><th>Runs in</th><th class="num">g CO₂/kWh</th><th class="num">kWh / yr</th><th class="num">CO₂ / yr</th><th class="num">CHF / yr</th><th>What we see</th><th>Fix</th></tr></thead>
     <tbody>${rows.map(r => { const f = find(r.resource_id), ms = byRes(r.resource_id), gf = gridFactor(r.region);
       return `<tr class="click" data-res="${esc(r.resource_id)}" data-src="${esc(r.source)}"><td><span class="sw" style="background:${CAT_COLOR[r.category]}"></span><b>${esc(r.resource_id)}</b><div class="small muted">${esc(r.tool || '')}${rows.filter(x => x.resource_id === r.resource_id).length > 1 ? ` · ${esc(String(r.source).replace(/\.\w+$/, ''))}` : ''}</div></td>
@@ -857,6 +858,10 @@ $('#panelX').onclick = closePanel; $('#scrim').onclick = closePanel;
 
 /* ---------------- 1 CONNECT ---------------- */
 function resRows() { return D.by_resource.map(r => ({ ...r, co2: r[co2k()], kwh: r[kwhk()] })); }
+// by_resource is split by department; one row per resource and source for rankings
+function resMerged() { const a = {}; resRows().forEach(r => { const k = r.resource_id + '|' + r.source, x = a[k];
+  if (!x) a[k] = { ...r }; else { x.co2 += r.co2; x.kwh += r.kwh; x.cost_chf += r.cost_chf; } }); return Object.values(a); }
+const nResources = () => new Set(D.by_resource.map(r => r.resource_id)).size;
 function dqBySource() { const s = {}; D.dq.forEach(e => { (s[e.source] = s[e.source] || []).push(e); }); return s; }
 
 function renderConnect() {
@@ -923,7 +928,7 @@ function marketCard() {
       <p class="sub">Same kWh. Location: the grid where the data centre stands. Market: what the electricity contracts say.</p></div>
       <div class="stats" style="margin:0;min-width:300px"><div class="stat"><div class="k">Location ${dot('derived')}</div><div class="v">${kg(loc)}</div></div>
       <div class="stat"><div class="k">Market ${dot('assumed')}</div><div class="v">${kg(mk)}</div></div></div></div>
-    ${pairBars(rows, ['location-based', 'market-based'], kg)}
+    ${pairBars(rows, ['location-based', 'market-based'], kg, true)}
     <p class="small muted" style="margin:14px 0 0">Zurich gets cleaner on paper: every Swiss kWh is covered by guarantees of origin (hoster confirmed in T-1030, T-1181, T-1203, T-1227).
       Outside Switzerland the data holds no certificate for our use, so the European residual mix applies, and that is <b>dirtier</b> than the grid.
       Market-based is not automatically lower. Targets stay location-based.</p></div>`;
@@ -994,6 +999,99 @@ function renderFind() {
 }
 
 /* ---------------- 3 DECIDE ---------------- */
+// Plain words per measure (the computed figures stay in the data; this is only how a newcomer reads it).
+const AP_PLAIN = {
+  M1: 'The production data platform goes to sleep when nobody is working and no job needs it, and wakes up by itself before the next job or when someone opens a report.',
+  M2: 'The development cluster only runs during office hours on working days, and starts by itself on the quarterly training days.',
+  M3: 'Move the development cluster from Frankfurt to Zurich, where the electricity is much cleaner, at about the same price.',
+  M4: 'The GPU server only runs when there is training to do, instead of day and night.',
+  M5: 'Shrink the test environment back to the size that was planned, keeping the servers that are really used.',
+  M6: 'The remaining test servers only run during working hours.',
+  M7: 'Cancel the duplicate ChatGPT team plan and keep only the AI seats people actually use, plus one spare per team.',
+  M8: 'At each renewal, buy only as many software licences as people use, plus a small margin.',
+  M9: 'Use smaller, cheaper AI models for simple tasks like sorting, summarising and translating.',
+  M10: 'Let the AI reuse repeated instructions instead of processing the same text again and again.',
+  M11: 'Stop AI agents from retrying a failing task over and over: at most three tries.',
+  M12: 'Keep application logs for 90 days instead of a year; audit and login logs stay as they are.',
+  B3: 'Refresh rarely used Power BI reports weekly instead of daily, on a smaller capacity.',
+  B4: 'Skip nightly builds when nothing has changed, and re-run only the failed parts of a build.',
+  B5: 'Move data tables nobody has read for a year to cheaper archive storage.',
+};
+// On-hours per day type for the schedule measures (as in measures.py / limits.py); today they run 24 hours.
+const AP_SCHED = {
+  M1: [['Working day', [[1.5, 20]]], ['Weekend', [[1.5, 8]]], ['Month-end and January', [[0, 24]]]],
+  M2: [['Working day', [[8, 18]]], ['Weekend', []], ['Training days', [[0, 24]]]],
+  M6: [['Working day', [[7, 19]]], ['Weekend', []]],
+};
+const AP_IC = {
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  replay: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/>',
+  warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>',
+};
+const apIc = k => `<span class="ap-ic"><svg viewBox="0 0 24 24">${AP_IC[k]}</svg></span>`;
+function apPayback(m, t) {
+  if (!(m.cost.mid > 0)) return '';
+  const months = m.effort_pd * t.pd_chf / m.cost.mid * 12;
+  if (months < 0.25) return 'Pays for itself in under a week';
+  if (months < 1) return `Pays for itself in about ${Math.max(1, Math.round(months * 4.35))} weeks`;
+  if (months < 24) return `Pays for itself in about ${Math.round(months)} month${Math.round(months) === 1 ? '' : 's'}`;
+  if (mco2(m) > 0) return `Mainly a CO₂ measure: the money saved is small, the CO₂ saved is not`;
+  return `Pays for itself in about ${(months / 12).toFixed(1)} years`;
+}
+function apDayBar(on) {   // a 24-hour strip: green = running, light = asleep
+  const seg = on.map(([a, b]) => `<i style="left:${a / 24 * 100}%;width:${(b - a) / 24 * 100}%"></i>`).join('');
+  return `<span class="ap-day">${seg}</span>`;
+}
+function apSchedule(m) {
+  const S2 = AP_SCHED[m.id];
+  if (!S2) return '';
+  const row = (l, on, v, today) => `<div class="ap-srow ${today ? 'today' : ''}"><span class="ap-sl">${esc(l)}</span><span class="ap-sv">${v}</span>${apDayBar(on)}</div>`;
+  return `<div class="ap-block"><div class="ap-bh">Before and after</div>
+    ${row('Today', [[0, 24]], 'on 24 hours, every day', true)}
+    ${S2.map(([l, on]) => { const h = on.reduce((a, [x, y]) => a + y - x, 0);
+      return row(l, on, h >= 24 ? 'stays on all day' : h ? `on ${String(h).replace('.5', '½')} h, asleep the rest` : 'asleep all day'); }).join('')}
+    <div class="ap-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>`;
+}
+function apMiddle(m, t) {
+  const wins = D.windows.filter(w => m.windows.includes(w.id)), rc = ruleCheck(m.id);
+  const runs = rc ? rc.checks.reduce((a, x) => a + x.checked, 0) : 0;
+  const owner = String(m.owner).replace(/\s*\([^)]*\)/g, '');
+  const plain = AP_PLAIN[m.id] || m.description;
+  const risk = String(m.risks).split(/(?<=[.!?])\s/)[0];
+  return `<div class="card ap-mid">
+    <div class="small muted">${m.id} · ${esc(m.category)} · ${esc(m.region)}</div>
+    <h2 class="ap-title">${esc(m.title)}</h2>
+    <p class="ap-plain">${esc(plain)}</p>
+    <div class="ap-gets">
+      <div><span>Saved a year</span><b>${chf(m.cost.mid)}</b></div>
+      <div><span>Less CO₂ a year</span><b>${kg(mco2(m))}</b></div>
+      <div><span>Work to set it up</span><b>${String(m.effort_pd).replace('.5', '½')} day${m.effort_pd === 1 ? '' : 's'}</b></div>
+    </div>
+    ${apPayback(m, t) ? `<p class="ap-pay">${apPayback(m, t)}${m.requires.length ? ` · works together with ${m.requires.join(', ')}` : ''}</p>` : ''}
+    ${apSchedule(m)}
+    <div class="ap-block"><div class="ap-bh">Why it is safe</div>
+      <div class="ap-safe">
+        <div>${apIc('person')}<div><b>Who decides</b><span>${esc(owner)}</span></div></div>
+        <div>${apIc('shield')}<div><b>What stays protected</b><span>${wins.length ? wins.map(w => esc(w.name.replace(/\s*\(.*\)/, ''))).join(' · ') : 'Nothing time-critical runs on this system'}</span></div></div>
+        <div>${apIc('replay')}<div><b>Tested on real jobs</b><span>${rc ? (rc.conflicts ? `${n0(rc.conflicts)} of ${n0(runs)} past jobs would fail` : `0 of ${n0(runs)} past jobs affected`) : 'No on/off schedule, nothing to replay'}</span></div></div>
+      </div>
+      <div class="ap-watch">${apIc('warn')}<span><b>Watch out:</b> ${esc(risk)}</span></div></div>
+    <details class="more-d ap-tech"><summary>Show the technical details</summary>
+      <dl class="kv" style="margin-top:12px"><dt>Exact change</dt><dd>${esc(m.change)}</dd><dt>System</dt><dd>${esc(m.resource)}</dd><dt>Decision by</dt><dd>${esc(m.owner)}</dd>
+        ${(m.responsible || []).length ? `<dt>Responsible</dt><dd>${m.responsible.map(x => `${esc(x.role)} <span class="muted small">(${esc(x.resource_id)}${x.criticality ? ', criticality ' + esc(x.criticality) : ''})</span>`).join(' · ')} <span class="muted small">per mapping_departments_tools.csv</span></dd>` : ''}
+        <dt>All risks</dt><dd>${esc(m.risks)}</dd></dl>
+      ${wins.length ? `<h3>${gl('window', 'Protection windows')}</h3>${wins.map(w => `<span class="chip win" data-tip="${esc(w.evidence)}">✓ ${w.id} ${esc(w.name)}</span>`).join('')}` : ''}
+      ${ruleLine(m.id)}
+      <table class="range" style="margin-top:14px"><thead><tr><th></th><th class="num">low</th><th class="num">expected</th><th class="num">high</th></tr></thead><tbody>
+        <tr><td>CHF</td><td class="num">${n0(m.cost.low)}</td><td class="num"><b>${n0(m.cost.mid)}</b></td><td class="num">${n0(m.cost.high)}</td></tr>
+        <tr><td>kWh</td><td class="num">${n0(m.kwh.low)}</td><td class="num"><b>${n0(m.kwh.mid)}</b></td><td class="num">${n0(m.kwh.high)}</td></tr>
+        <tr><td>kg CO₂ (CH ${S.mix})</td><td class="num">${n0(m.co2['low_' + S.mix])}</td><td class="num"><b>${n0(m.co2['mid_' + S.mix])}</b></td><td class="num">${n0(m.co2['high_' + S.mix])}</td></tr></tbody></table>
+      <h3>Evidence</h3>${m.evidence.map(e => `<div style="margin:6px 0"><span class="tag ${e.kind}">${e.kind}</span> ${esc(e.text)}</div>`).join('')}
+      <h3>Assumptions and sources</h3><p class="small ink2" style="margin:0">${esc(m.assumptions)}</p>
+    </details>
+  </div>`;
+}
 function renderDecide() {
   const p = pkg(), t = D.meta.targets, m = D.measures.find(x => x.id === S.selMeasure) || D.measures[0];
   const main = D.measures.filter(x => !x.bonus || x.default_on), bonus = D.measures.filter(x => x.bonus && !x.default_on);
@@ -1006,32 +1104,13 @@ function renderDecide() {
     return `<tr${s === S.scen ? ' style="font-weight:600"' : ''}><td>${s}</td><td class="num">${kg(base)}</td><td class="num ${c / base >= t.co2 ? 'ok' : 'bad'}">${cut(c / base)}</td></tr>`; };
   const gauge = (label, v, target, fmtv, sub) => speedo({ label, f: v / (target * 2), tf: 0.5, ok: v >= target, value: fmtv, sub, tlabel: `target ${cut(target).replace('.0\u00a0%', '\u00a0%')}` });
   const contrib = p.on.map(x => ({ label: `${x.id} ${x.title}`, v: mco2(x) })).filter(x => x.v > 0).sort((a, b) => b.v - a.v);
-  const payback = m.cost.mid > 0 ? (m.effort_pd * t.pd_chf / m.cost.mid * 12).toFixed(1) + ' mo' : '–';
   $('#main').innerHTML = `
   ${pageHead('decide')}
   <div class="cols c-dec">
     <div class="card sticky scroll" style="padding:14px 18px">
       <div class="list-h"><span>Include</span><span>Measure</span><span>Saves CHF / kg CO₂ a year</span></div>
       <div class="list" style="margin:0 -8px">${main.map(li).join('')}</div>${bonus.length ? `<div class="group-h">Optional extras, off in the recommendation</div><div class="list" style="margin:0 -8px">${bonus.map(li).join('')}</div>` : ''}</div>
-    <div class="card">
-      <div class="small muted">${m.id} · ${esc(m.category)} · ${esc(m.region)}</div>
-      <h2 style="font-size:20px;letter-spacing:-.4px;margin-top:4px">${esc(m.title)}</h2><p class="lead">${esc(m.description)}</p>
-      <div class="stats"><div class="stat"><div class="k">Saves CHF / yr</div><div class="v">${n0(m.cost.mid)}</div></div><div class="stat"><div class="k">Saves kg CO₂ / yr</div><div class="v">${n0(mco2(m))}</div></div>
-        <div class="stat"><div class="k">Effort</div><div class="v">${m.effort_pd} PD</div></div><div class="stat"><div class="k">Payback</div><div class="v">${payback}</div></div></div>
-      <dl class="kv"><dt>What changes</dt><dd>${esc(m.change)}</dd><dt>Resource</dt><dd>${esc(m.resource)}</dd><dt>Decision by</dt><dd>${esc(m.owner)}</dd>
-        ${(m.responsible || []).length ? `<dt>Responsible</dt><dd>${m.responsible.map(x => `${esc(x.role)} <span class="muted small">(${esc(x.resource_id)}${x.criticality ? ', criticality ' + esc(x.criticality) : ''})</span>`).join(' · ')} <span class="muted small">per mapping_departments_tools.csv</span></dd>` : ''}</dl>
-      <h3>${gl('window', 'Protection windows')} respected</h3>${wins.length ? wins.map(w => `<span class="chip win" data-tip="${esc(w.evidence)}">✓ ${w.id} ${esc(w.name)}</span>`).join('') : '<span class="muted small">None apply to this resource.</span>'}
-      ${ruleLine(m.id)}
-      <div class="note warn"><b>Risks</b> · ${esc(m.risks)}</div>
-      <details class="more-d"><summary>Ranges, evidence and assumptions</summary>
-        <table class="range" style="margin-top:12px"><thead><tr><th></th><th class="num">low</th><th class="num">expected</th><th class="num">high</th></tr></thead><tbody>
-          <tr><td>CHF</td><td class="num">${n0(m.cost.low)}</td><td class="num"><b>${n0(m.cost.mid)}</b></td><td class="num">${n0(m.cost.high)}</td></tr>
-          <tr><td>kWh</td><td class="num">${n0(m.kwh.low)}</td><td class="num"><b>${n0(m.kwh.mid)}</b></td><td class="num">${n0(m.kwh.high)}</td></tr>
-          <tr><td>kg CO₂ (CH ${S.mix})</td><td class="num">${n0(m.co2['low_' + S.mix])}</td><td class="num"><b>${n0(m.co2['mid_' + S.mix])}</b></td><td class="num">${n0(m.co2['high_' + S.mix])}</td></tr></tbody></table>
-        <h3>Evidence</h3>${m.evidence.map(e => `<div style="margin:6px 0"><span class="tag ${e.kind}">${e.kind}</span> ${esc(e.text)}</div>`).join('')}
-        <h3>Assumptions and sources</h3><p class="small ink2" style="margin:0">${esc(m.assumptions)}</p>
-      </details>
-    </div>
+    ${apMiddle(m, t)}
     <div class="card sticky scroll">
       <div class="card-h"><div><h2>Target check</h2><p class="sub" style="margin-bottom:4px">${p.on.length} measures vs. the ${gl('normalised', 'normalised baseline')}</p></div>
         ${isRecommended() ? '<span class="tag read">recommended</span>' : '<button class="btn ghost sm" id="resetPkg" title="Switch back to the recommended measures">Reset</button>'}</div>
@@ -1121,19 +1200,6 @@ function noticeCard() {
       <td><span class="tag ${st[r.status][0]}">${st[r.status][1]}</span></td><td>${r.measure ? `<span class="chip" style="margin:0">${r.measure}</span>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
-function ruleCard() {
-  const C = D.rule_checks || [];
-  if (!C.length) return '';
-  const title = id => (D.measures.find(m => m.id === id) || D.not_recommended.find(x => x.id === id) || {}).title || id;
-  return `<div class="card"><h2>Rule engine: every schedule against every job run</h2>
-    <p class="sub">The sleep schedules are code. They are replayed against all ${n0((D.rule_checks.find(c => c.measure === 'X1') || { checks: [] }).checks.reduce((a, x) => a + x.checked, 0))} dp-prod job runs in the scheduler and the training days. A single conflict blocks the measure.</p>
-    <div class="rows">${C.map(c => { const prot = c.checks.filter(x => x.kind === 'protected'); const n = prot.reduce((a, x) => a + x.checked, 0);
-      return `<div class="row-i"><div class="hd"><span class="t"><span class="idb">${c.measure}</span>${esc(title(c.measure))}</span>
-        <span class="tag ${c.status === 'pass' ? 'read' : 'assumed'}">${c.status === 'pass' ? '✓ pass' : '✗ refused'}</span></div>
-        <div class="d">${n0(n)} protected runs checked · <b class="${c.conflicts ? 'bad' : ''}">${n0(c.conflicts)} conflicts</b>${c.flexible_outside ? ` · ${n0(c.flexible_outside)} flexible runs to move` : ''}</div>
-        ${c.conflicts ? `<div class="s">${prot.filter(x => x.outside).map(x => `${esc(x.job)} (${x.window}) ${n0(x.outside)}× e.g. ${esc(x.examples[0] || '')}`).join(' · ')}</div>` : ''}</div>`; }).join('')}</div></div>`;
-}
-
 /* ---------------- 4 LIMITS ---------------- */
 function scheduleGrid() {
   const rows = [
@@ -1148,43 +1214,105 @@ function scheduleGrid() {
     s += `<span class="c ${c}" data-tip="${r.l} ${String(h).padStart(2, '0')}:00 – ${c === 'need' ? 'needed by a fixed job or user window' : c === 'on' ? 'kept on (buffer, users, pre-start)' : 'asleep, auto-resume on demand'}"></span>`; } });
   return s + `</div><div class="legend" style="margin:14px 0 0"><span><span class="sw" style="background:var(--s1)"></span>Needed (fixed window)</span><span><span class="sw" style="background:#a9cbf3"></span>Kept on</span><span><span class="sw" style="background:var(--line-2);outline:1px solid var(--line)"></span>Asleep with M1</span></div>`;
 }
-function limitsSummary() {
-  const C = D.rule_checks || [], pk = C.filter(c => D.measures.some(m => m.id === c.measure && S.on.has(m.id)));
-  const runs = pk.reduce((a, c) => a + c.checks.filter(x => x.kind === 'protected').reduce((b, x) => b + x.checked, 0), 0);
-  const conflicts = pk.reduce((a, c) => a + c.conflicts, 0), refused = C.filter(c => c.conflicts).length;
-  const box = (v, k, s, cls = '') => `<div class="kpi"><div class="k">${k}</div><div class="v ${cls}">${v}</div><div class="r">${s}</div></div>`;
-  return `<div class="kpis k4">
-    ${box(conflicts, 'Conflicts in your package', `${n0(runs)} protected job runs checked against the sleep schedules`, conflicts ? 'bad' : 'ok')}
-    ${box(D.not_recommended.length, 'Handed to a person', `incl. ${refused} refused by the rule engine (e.g. switching production off)`)}
-    ${box(D.injections.length, 'Hidden instructions ignored', 'free text that tries to give orders: shown, never followed')}
-    ${box(D.contradictions.length, 'Contradictions resolved', 'sources that disagree; each names the source we trust')}</div>`;
-}
+// Safeguards, explained for anyone: every proposed change passes four checks before Kilowise recommends it.
+const SG_IC = {
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  replay: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M10 9l5 3-5 3z"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  filter: '<path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/>',
+  monthend: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4M14 15h3"/>',
+  january: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4M8 14h3"/>',
+  moon: '<path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5z"/>',
+  brain: '<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a3 3 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/>',
+  archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>',
+  report: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  flask: '<path d="M9 3h6M10 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/>',
+  ban: '<circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/>',
+  split: '<path d="M6 3v6a6 6 0 0 0 6 6h0a6 6 0 0 1 6 6v0M18 3v6"/><circle cx="6" cy="3" r="1"/>',
+};
+const sgIcon = (k, cls = 'sg-ic') => `<span class="${cls}"><svg viewBox="0 0 24 24">${SG_IC[k] || SG_IC.shield}</svg></span>`;
+const WIN_IC = { W1: 'monthend', W2: 'january', W3: 'moon', W4: 'brain', W5: 'shield', W6: 'archive', W7: 'report', W8: 'flask' };
+const firstSentence = t => { let s = String(t || '').split(/(?<=[.!?])\s/)[0]; s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s.length > 170 ? s.slice(0, 167).replace(/\s\S*$/, '') + '…' : s; };
+const sysName = id => { const k = String(id).split(/[ (+]/)[0], r = D.by_resource.find(x => x.resource_id === k); return r && r.tool ? r.tool : id; };
+const evidenceChips = e => { const t = [...new Set(String(e).match(/T-\d{4}/g) || [])];
+  if (t.length) return t.slice(0, 3).map(x => `<span class="sg-chip">ticket ${x}</span>`).join('');
+  return /scheduler/i.test(e) ? '<span class="sg-chip">job scheduler</span>' : '<span class="sg-chip">usage pattern</span>'; };
+
 function renderLimits() {
+  const RC = D.rule_checks || [], pkg = RC.filter(c => S.on.has(c.measure));
+  const runs = c => c.checks.reduce((a, x) => a + x.checked, 0);
+  const pkgRuns = pkg.reduce((a, c) => a + runs(c), 0), pkgConf = pkg.reduce((a, c) => a + c.conflicts, 0);
+  const stopped = RC.filter(c => c.conflicts), x1 = RC.find(c => c.measure === 'X1');
+  const title = id => { const m = D.measures.find(x => x.id === id); return m ? shortOf(m) : (D.not_recommended.find(x => x.id === id) || {}).title || id; };
+  const gates = [
+    ['sg-times', 'clock', 'Protected times', `${D.windows.length} times when systems must stay on`, 'Found in tickets and the job scheduler'],
+    ['sg-test', 'replay', 'Tested on real jobs', pkgConf ? `${pkgConf} problems found` : 'No job would have failed', `${n0(pkgRuns)} past job runs replayed`],
+    ['sg-person', 'person', 'A person decides', `${D.not_recommended.length} risky ideas stopped`, 'Each with the person who decides'],
+    ['sg-data', 'filter', 'Clean data', `${D.injections.length} hidden orders ignored`, `${D.contradictions.length} disagreements sorted out`],
+  ];
+  const maxRuns = Math.max(...RC.map(runs), 1);
   $('#main').innerHTML = `
   ${pageHead('limits')}
-  ${limitsSummary()}
-  <div class="cols c-2">
-    <div class="stack-v">
-      <div class="card"><h2>When may production sleep?</h2><p class="sub">Hours of the day by day type (Europe/Zurich).</p>${scheduleGrid()}
-        <div class="note info" style="margin-top:18px">${esc(D.answers[2].answer)}</div></div>
-      ${ruleCard()}
-      <div class="card"><h2>${gl('window', 'Protection windows')}</h2><p class="sub">Found in tickets and usage patterns. Measures read their schedules from these.</p>
-        <div class="rows">${D.windows.map(w => `<div class="row-i"><div class="hd"><span class="t"><span class="idb">${w.id}</span>${esc(w.name)}</span><span class="small muted">${esc(w.resource_id)}</span></div>
-          <div class="d">${esc(w.when)}</div><div class="s">${esc(w.evidence)} · decides: ${esc(w.owner)}</div></div>`).join('')}</div></div>
+  <section class="sg-flow">
+    <div class="sg-flow-h"><b>How a change gets to you</b><span>Every saving Kilowise proposes has to pass four checks first. If one says no, the change is stopped or handed to a person.</span></div>
+    <div class="sg-gates">
+      <div class="sg-start"><span>Proposed change</span><small>e.g. “let a server sleep at night”</small></div>
+      ${gates.map(([id, ic, t, v, s], i) => `<button class="sg-gate" data-jump="${id}"><span class="sg-step">${i + 1}</span>${sgIcon(ic)}<b>${t}</b><span class="sg-v">${v}</span><small>${s}</small></button>`).join('')}
+      <div class="sg-end"><span class="sg-ok">✓</span><span>Safe to recommend</span></div>
     </div>
-    <div class="stack-v">
-      <div class="card"><h2>Handed to a person</h2><p class="sub">Looks like waste, but must not be touched without a decision. The person who decides is named.</p>
-        <div class="rows">${D.not_recommended.map(x => `<div class="row-i"><div class="hd"><span class="t"><span class="idb">${x.id}</span>${esc(x.title)}</span>
-          <span class="tag ${x.why.startsWith('Blocked') ? 'assumed' : 'flagged'}">${x.why.startsWith('Blocked') ? 'blocked' : 'not recommended'}</span></div>
-          <div class="d">${esc(x.why)}</div><div class="s">Instead: ${esc(x.instead)} · decides: ${esc(x.owner)}</div></div>`).join('')}</div></div>
-      <div class="card"><h2>Instructions hidden in the data</h2><p class="sub">${D.injections.length} free-text fields try to give orders. Treated as data, quarantined, no figure changed.</p>
-        <div class="rows">${D.injections.map(i => `<div class="row-i"><div class="hd"><span class="t">${esc(i.source)}</span><span class="tag flagged">quarantined</span></div>
-          <div class="s">${esc(i.where)}${i.resource_id ? ' · ' + esc(i.resource_id) : ''}</div><div class="quote">“${esc(i.text)}”</div></div>`).join('')}</div></div>
-      <div class="card"><h2>Contradictions between sources</h2><p class="sub">Which source we trust, and why.</p>
-        <div class="rows">${D.contradictions.map(c => `<div class="row-i"><div class="t">${esc(c.topic)}</div><div class="d">${esc(c.trusted)}</div>
-          <details class="src"><summary>Both sides</summary><div class="small ink2" style="margin-top:6px">A: ${esc(c.a)}</div><div class="small ink2">B: ${esc(c.b)}</div><div class="small muted" style="margin-top:4px">${esc(c.impact)}</div></details></div>`).join('')}</div></div>
+  </section>
+
+  <section class="sg-sec" id="sg-times">
+    <div class="sg-sec-h">${sgIcon('clock', 'sg-ic big')}<div><span class="sg-k">Check 1</span><h2>Protected times: when systems must stay on</h2>
+      <p>Some systems look idle but are needed at fixed times: the month-end close, the nightly reports, the training days. Kilowise reads these from tickets and from the job scheduler, and no measure may touch them.</p></div></div>
+    <div class="sg-two">
+      <div class="card sg-clock"><h3>A day of the production platform, hour by hour</h3>
+        <p class="sub">Blue: a job or people need it. Light blue: kept on as a buffer. Grey: it may sleep, and wakes up by itself when someone needs it.</p>
+        ${scheduleGrid()}
+        <details class="sg-more"><summary>Read the full answer: may production be switched off at night?</summary><p>${esc(D.answers[2].answer)}</p></details></div>
+      <div class="sg-wins">${D.windows.map(w => `<div class="sg-win">${sgIcon(WIN_IC[w.id] || 'shield')}
+        <div><b>${esc(w.name)}</b><span class="sg-when">${esc(firstSentence(String(w.when).split(/[;(]/)[0]))}</span>
+          <span class="sg-meta">${esc(sysName(w.resource_id))} · decides: ${esc(String(w.owner).split(/[(]/)[0].trim())}</span>
+          <span class="sg-chips">${evidenceChips(w.evidence)}</span></div></div>`).join('')}</div>
     </div>
-  </div>`;
+  </section>
+
+  <section class="sg-sec" id="sg-test">
+    <div class="sg-sec-h">${sgIcon('replay', 'sg-ic big')}<div><span class="sg-k">Check 2</span><h2>Tested on real jobs, like a crash test</h2>
+      <p>For every on/off schedule we replay every job that really ran in the past months. If even one job would have run while the system was asleep, the change is stopped.</p></div></div>
+    <div class="card"><div class="sg-tests">${RC.map(c => { const n = runs(c), bad = c.conflicts, ok = !bad;
+      return `<div class="sg-test ${ok ? 'ok' : 'bad'}"><span class="sg-tid">${c.measure}</span><span class="sg-tname">${esc(title(c.measure))}</span>
+        <span class="sg-tbar" data-tip="${esc(`${n0(n)} job runs replayed · ${n0(bad)} would have failed`)}"><i style="width:${100 * n / maxRuns}%"></i>${bad ? `<u style="width:${100 * bad / maxRuns}%"></u>` : ''}</span>
+        <span class="sg-tnum">${n0(n)} runs</span><span class="sg-pill ${ok ? 'ok' : 'bad'}">${ok ? '✓ Safe' : `✗ Stopped: ${n0(bad)} would fail`}</span></div>`; }).join('')}</div>
+      <div class="legend" style="margin:14px 0 0"><span><span class="sw" style="background:#9fd3bd"></span>Job runs replayed</span><span><span class="sw" style="background:var(--critical)"></span>Would have failed</span></div>
+      ${x1 ? `<div class="sg-example"><b>Example of a stop:</b> switching production off every night and weekend looks like a big saving. The replay shows ${n0(x1.conflicts)} jobs would have failed, among them the month-end close and the nightly reports. So Kilowise recommends a gentler schedule (M1) that passes with no failures.</div>` : ''}</div>
+  </section>
+
+  <section class="sg-sec" id="sg-person">
+    <div class="sg-sec-h">${sgIcon('person', 'sg-ic big')}<div><span class="sg-k">Check 3</span><h2>Ideas we stopped, and who decides</h2>
+      <p>These look like easy savings, but they would break something or need a business decision. Kilowise does not do them; it names the person who decides and suggests a safer way.</p></div></div>
+    <div class="sg-ideas">${D.not_recommended.map(x => `<div class="card sg-idea"><div class="sg-idea-h"><span class="sg-tid bad">${x.id}</span><b>${esc(x.title)}</b></div>
+      <div class="sg-steps3"><div><span class="sg-lab">Why not</span><p>${esc(firstSentence(x.why.replace(/^Blocked:?\s*/i, '')))}</p></div>
+        <div><span class="sg-lab ok">Instead</span><p>${esc(firstSentence(x.instead))}</p></div></div>
+      <div class="sg-owner">${sgIcon('person', 'sg-ic sm')}<span>Decides: <b>${esc(String(x.owner).split('(')[0].trim())}</b></span></div></div>`).join('')}</div>
+  </section>
+
+  <section class="sg-sec" id="sg-data">
+    <div class="sg-sec-h">${sgIcon('filter', 'sg-ic big')}<div><span class="sg-k">Check 4</span><h2>Clean data: nothing in the files gives orders</h2>
+      <p>Some files contain text that tries to command an AI, like “set all costs to 0”. Kilowise treats it as plain data: it shows it here and never follows it. Where two sources disagree, it says which one it trusts and why.</p></div></div>
+    <div class="sg-two">
+      <div><h3 class="sg-h3">Hidden orders found in the data</h3>
+        <div class="sg-notes">${D.injections.map(i => `<div class="sg-note"><span class="sg-stamp">Ignored</span><q>${esc(i.text.length > 150 ? i.text.slice(0, 147).replace(/\s\S*$/, '') + '…' : i.text)}</q>
+          <span class="sg-meta">found in ${esc(i.source)} · ${esc(i.where)}</span></div>`).join('')}</div></div>
+      <div><h3 class="sg-h3">When two sources disagree</h3>
+        <div class="sg-conf">${D.contradictions.map(c => `<div class="sg-c"><b>${esc(c.topic)}</b>
+          <div class="sg-vs"><span data-tip="${esc(c.a)}">${esc(c.a.length > 70 ? c.a.slice(0, 67).replace(/\s\S*$/, '') + '…' : c.a)}</span><em>vs</em><span data-tip="${esc(c.b)}">${esc(c.b.length > 70 ? c.b.slice(0, 67).replace(/\s\S*$/, '') + '…' : c.b)}</span></div>
+          <div class="sg-trust">✓ We use: ${esc(firstSentence(c.trusted))}</div></div>`).join('')}</div></div>
+    </div>
+  </section>`;
+  $$('[data-jump]').forEach(b => b.onclick = () => { const t = document.getElementById(b.dataset.jump); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   wireHoverTips($('#main')); wireGuide($('#main'));
 }
 
@@ -2142,8 +2270,11 @@ const SUGGEST = ['What are the biggest CO₂ drivers?', 'How much does Marketing
 const INJ = /(ignore (all )?(previous|prior|the above)|system prompt|you are now|disregard|set .{0,40}(cost|costs).{0,10}(to )?0|report .* lower|pretend|override (the )?(rules|data))/i;
 const has = (q, ...w) => w.some(x => q.includes(x));
 function ans(text, extra = {}) { return { text, calc: '', sources: [], rows: null, ...extra }; }
+const RES_ALIAS = [[/\bdev(elopment)? (cluster|platform)\b/, 'dp-dev'], [/\bprod(uction)? (cluster|platform)\b/, 'dp-prod'],
+  [/\bgpu (server|machine)\b/, 'gpu-ml'], [/\btest (environment|servers?|vms?)\b/, 'vm-test']];
 function findEntity(q) {
-  const res = D.by_resource.filter(r => q.includes(String(r.resource_id).toLowerCase()) || (r.tool && q.includes(String(r.tool).toLowerCase())));
+  const al = RES_ALIAS.filter(([re]) => re.test(q)).map(x => x[1]);
+  const res = D.by_resource.filter(r => al.includes(r.resource_id) || q.includes(String(r.resource_id).toLowerCase()) || (r.tool && q.includes(String(r.tool).toLowerCase())));
   const deps = [...new Set(D.by_department_allocated.map(d => d.department))].filter(d => d && q.includes(d.toLowerCase()));
   const cats = CATS.filter(c => new RegExp(`\\b${c.toLowerCase()}\\b`).test(q));
   const reg = [['zurich', 'CH_consumption'], ['switzerland', 'CH_consumption'], ['frankfurt', 'DE'], ['germany', 'DE'], ['dublin', 'IE'], ['ireland', 'IE']].filter(([w]) => q.includes(w)).map(x => x[1]);
@@ -2189,6 +2320,11 @@ function chatAnswer(raw) {
     const top = [...D.by_resource].sort((a, c) => c[k] - a[k]).slice(0, 5);
     return ans(`Top 5 by ${byCost ? 'cost' : 'CO₂'} (${view}):`, { rows: top.map(r => [`${r.tool || r.resource_id} (${r.resource_id})`, byCost ? chf(r.cost_chf) : kg(r[ck])]), calc: 'Ledger by resource, baseline year, normalised', sources: [...new Set(top.map(r => r.source))] }); }
   const e = findEntity(q);
+  const fnd = e.res.length && D.findings.find(f => f.resource_id === e.res[0].resource_id);
+  if (fnd && has(q, 'why', 'problem', 'waste', 'wrong', 'issue', 'idle')) { const m = D.measures.find(x => x.id === fnd.measure);
+    const r = e.res.filter(x => x.resource_id === fnd.resource_id).reduce((a, x) => { METRIC_KEYS.forEach(k => { a[k] = (a[k] || 0) + (x[k] || 0); }); return a; }, {});
+    return { ...ans(`${fnd.title} (${fnd.kpi}). ${fnd.detail.replace(/([^.])$/, '$1.')} It costs ${chf(r.cost_chf)} and causes ${kg(r[ck])} CO₂ a year (${view}).${m ? ` Fix: ${m.id} ${shortOf(m)}, saves ${chf(m.cost.mid)} and ${kg(mco2(m))} CO₂ a year for ${m.effort_pd} PD.` : ''}`,
+      { calc: 'Finding from the usage data; cost and CO₂ = ledger by resource, baseline year, normalised.', sources: [...new Set(e.res.map(x => x.source))] }), res: e.res[0] }; }
   const line = (label, r, src) => ans(`${label}: ${chf(r.cost_chf)} per year, ${kwh(r[kk])}, ${kg(r[ck])} CO₂ (${view}).`, { calc: 'Sum of monthly ledger rows Sep 2025 – Aug 2026 (normalised). Energy = quantity × factor × PUE; CO₂ = kWh × grid at the data-centre location.', sources: src });
   if (e.res.length) { const r = e.res.reduce((a, x) => { METRIC_KEYS.forEach(k => { a[k] = (a[k] || 0) + (x[k] || 0); }); return a; }, {});
     return { ...line(`${e.res[0].tool || e.res[0].resource_id} (${e.res[0].resource_id})`, r, [...new Set(e.res.map(x => x.source))]), res: e.res[0] }; }
@@ -2214,11 +2350,11 @@ const TAB_SUGGEST = {
 };
 function aiStatus() {
   const A = S.api;
-  if (WS) return ['local', 'Answers from your files, computed in this page'];
-  if (!A) return ['local', 'Answers from the ledger, computed in this page'];
-  if (A.model) return ['model', `Fine-tuned model ready for “why” questions`];
-  if (A.loading) return ['loading', 'Loading the model; simple questions work already'];
-  return ['local', 'Retrieval only: no model on this machine'];
+  if (WS) return ['local', 'Answers from your files', 'Answers from your files, computed in this page'];
+  if (!A) return ['local', 'Answers from your ledger', 'Answers from the ledger, computed in this page'];
+  if (A.model) return ['model', 'Fine-tuned model ready', 'Fine-tuned model ready for “why” questions'];
+  if (A.loading) return ['loading', 'Loading the model', 'Loading the model; simple questions work already'];
+  return ['local', 'Retrieval only', 'Retrieval only: no model on this machine'];
 }
 function actionsFor(q, a) {
   const ql = q.toLowerCase(), acts = [], ids = new Set();
@@ -2283,8 +2419,8 @@ function aiMsg(m, i) {
   </div></div>`;
 }
 function renderAI() {
-  const [mode, txt] = aiStatus();
-  $('#aiStatus').innerHTML = `<span class="st-dot st-${mode}"></span>${esc(txt)}`;
+  const [mode, txt, full] = aiStatus();
+  $('#aiStatus').innerHTML = `<span class="st-dot st-${mode}"></span>${esc(txt)}`; $('#aiStatus').title = full;
   $('#aiModes').innerHTML = [['auto', 'Auto'], ['local', 'Fast lookups'], ['model', 'Always the model']].map(([k, l]) =>
     `<button data-v="${k}" class="${S.chatMode === k ? 'on' : ''}" ${(!S.api || !S.api.rag || WS) && k === 'model' ? 'disabled' : ''}>${l}</button>`).join('');
   const sugg = TAB_SUGGEST[S.tab] || TAB_SUGGEST.start;
@@ -2309,7 +2445,7 @@ function runAction(m, x) {
   else if (x.t === 'res') { go('connect'); openPanel({ type: 'res', id: x.id, src: x.src }); }
   else if (x.t === 'toggle') {
     const before = new Set(S.on); toggle(x.id, x.on); render();
-    S.chat.push({ role: 'sys', text: `You ${x.on ? 'added' : 'removed'} ${x.id} ${x.on ? 'to' : 'from'} the plan. ${planLine()}`, undo: () => { S.on = before; } });
+    S.chat.push({ role: 'sys', text: `You ${x.on ? 'added' : 'removed'} ${x.id} ${x.on ? 'to' : 'from'} the plan. ${planLine()}`, undo: () => { S.on = before; x.done = false; } });
   }
   x.done = true; renderAI();
 }
@@ -2395,7 +2531,7 @@ function renderExport() {
     </div>
     <div class="stack-v">
       <div class="card"><h2>Our own AI use</h2><p class="sub">This prototype was built with an AI coding assistant.</p>
-        <div class="stats" style="margin-bottom:10px"><div class="stat"><div class="k">Tokens</div><div class="v">2–4 M</div></div><div class="stat"><div class="k">Energy</div><div class="v">0.4–1 kWh</div></div><div class="stat"><div class="k">CO₂, EU mix</div><div class="v">0.1–0.3 kg</div></div></div>
+        <div class="stats" style="margin-bottom:10px"><div class="stat"><div class="k">Tokens</div><div class="v">${D.meta.own_ai_use.tokens_m.join('–')} M</div></div><div class="stat"><div class="k">Energy</div><div class="v">${D.meta.own_ai_use.kwh.map(v => v.toFixed(1)).join('–')} kWh</div></div><div class="stat"><div class="k">CO₂, EU mix</div><div class="v">${D.meta.own_ai_use.co2_kg.map(v => v.toFixed(2)).join('–')} kg</div></div></div>
         <p class="small muted" style="margin:0">0.2 Wh per 1,000 tokens (range 0.05–1). Less than one day of the dev cluster's idle running.</p></div>
       <div class="card"><h2>Path to operation</h2>
         <ol class="ink2" style="padding-left:18px;line-height:1.65;margin:12px 0 0;font-size:13px">
@@ -2583,7 +2719,7 @@ function renderData() {
 const LOGOS = {
   aws: { name: 'Amazon Web Services', bg: '#232F3E', fg: '#FF9900', text: 'aws' },
   azure: { name: 'Microsoft Azure', bg: '#0078D4', text: 'Azure', short: 'Az' },
-  m365: { name: 'Microsoft 365', bg: '#0078D4', text: 'M365', short: '365' },
+  m365: { name: 'Microsoft 365', bg: '#fff', ring: true, icon: '<rect x="3" y="3" width="8.4" height="8.4" fill="#F25022"/><rect x="12.6" y="3" width="8.4" height="8.4" fill="#7FBA00"/><rect x="3" y="12.6" width="8.4" height="8.4" fill="#00A4EF"/><rect x="12.6" y="12.6" width="8.4" height="8.4" fill="#FFB900"/>' },
   openai: { name: 'OpenAI', bg: '#0D0D0D', text: 'OpenAI', short: 'AI' },
   anthropic: { name: 'Anthropic (Claude)', bg: '#191919',
     d: 'M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z' },
@@ -2604,10 +2740,11 @@ const FILE_LOGO = { 'azure_costs.csv': 'azure', 'aws_costs.csv': 'aws', 'm365_us
 function plogo(id, size = 'md') {
   const L = LOGOS[id];
   if (!L) return '';
-  const inner = L.d ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${L.d}" fill="#fff"/></svg>`
+  const inner = id === 'aws' ? `<span class="pl-aws"><b>aws</b><svg viewBox="0 0 24 8" aria-hidden="true"><path d="M2 2.5c6 4 14 4 20 0" stroke="#FF9900" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M18.6 1.2l3.4 1.2-1.3 3.2" stroke="#FF9900" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`
+    : L.d ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${L.d}" fill="#fff"/></svg>`
     : L.icon ? `<svg viewBox="0 0 24 24" aria-hidden="true">${L.icon}</svg>`
-    : (t => `<b class="pl-t pl-l${Math.min(t.length, 6)}" style="${L.fg ? `color:${L.fg}` : ''}">${esc(t)}</b>`)(size === 'lg' ? L.text : L.short || L.text);
-  return `<span class="plogo pl-${size}" style="background:${L.bg}" role="img" aria-label="${esc(L.name)}" title="${esc(L.name)}">${inner}</span>`;
+    : (t => `<b class="pl-t pl-l${Math.min(t.length, 6)}" style="${L.fg ? `color:${L.fg}` : ''}">${esc(t)}</b>`)(size === 'lg' || size === 'xl' ? L.text : L.short || L.text);
+  return `<span class="plogo pl-${size}" style="background:${L.bg}${L.ring ? ';box-shadow:inset 0 0 0 1px rgba(20,33,28,.12)' : ''}" role="img" aria-label="${esc(L.name)}" title="${esc(L.name)}">${inner}</span>`;
 }
 
 /* ---------------- CONNECT YOUR ACCOUNTS: pull cost and usage from providers into the workspace ---------------- */
@@ -2619,47 +2756,98 @@ const CONN_STATE = { ready: ['read', 'Ready'], credentials: ['derived', 'Needs c
 function connState() { if (!S.conn) S.conn = { live: null, busy: '', msg: {}, from: '', to: '', open: null }; return S.conn; }
 async function connLoad() { const st = connState(); try { st.live = await wsCall('GET', '/api/connectors');
   st.from = st.from || st.live.period.from; st.to = st.to || st.live.period.to; } catch (e) { st.live = null; } if (S.tab === 'data') render(); }
+// Brand look and plain words per connector: band colours follow each provider's own brand colours.
+const CONN_BRAND = {
+  focus: { band: ['#1f6b52', '#2f9a74'], btn: '#1f6b52', what: 'Any cloud\'s standard cost export (AWS, Azure, Google Cloud): drop the file, we convert it.', verb: 'Choose a FOCUS file' },
+  aws_ce: { band: ['#232F3E', '#37475A'], btn: '#FF9900', btnInk: '#232F3E', what: 'Daily cost per service and usage type; server sizes become vCPU-hours.', verb: 'Pull from AWS' },
+  azure_cost: { band: ['#0063B1', '#0078D4'], btn: '#0078D4', what: 'Daily cost details per resource and region.', verb: 'Pull from Azure' },
+  openai: { band: ['#0D0D0D', '#2A2A2A'], btn: '#0D0D0D', what: 'Token use and cost per project and model.', verb: 'Pull from OpenAI' },
+  anthropic: { band: ['#C15F3C', '#D97757'], btn: '#C15F3C', what: 'Claude token use and cost per workspace and model.', verb: 'Pull from Claude' },
+  m365: { band: ['#1B1B1B', '#3A3A3A'], btn: '#0078D4', what: 'Licences bought and licences in use, per product.', verb: 'Pull from Microsoft 365' },
+  saas_other: { band: ['#4B5A78', '#6A7898'], btn: '#4B5A78', what: 'Slack, Zoom, Atlassian, Salesforce, Google Workspace and others: one simple template.', verb: 'Download the template' },
+};
+const CI = {
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  file: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>',
+  plug: '<path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0zM12 16v5"/>',
+  pick: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M14 16.5l2 2 3.5-4"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>',
+  pull: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+};
+const cic = (k, cls = 'cn-i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${CI[k]}</svg>`;
+function connSteps(c, L, state) {
+  const envOk = L && L.env.filter(v => !v.alt).every(v => v.set) || (L && L.env.some(v => v.alt && v.set));
+  const pulled = !!(L && L.last && L.last.ok);
+  if (c.how === 'file') return [['Export the FOCUS file from your cloud', null], ['Drop it here', pulled]];
+  if (c.how === 'template') return [['Download the template', null], ['Fill in your tools', null], ['Upload it above', null]];
+  const s = [['Read-only access key', L ? !!envOk : null]];
+  if (c.package) s.push(['Install the helper', L ? state !== 'package' : null]);
+  if (c.settings.length) s.push(['Settings', L ? !['settings', 'credentials', 'package'].includes(state) : null]);
+  s.push(['Pull', L ? pulled : null]);
+  return s;
+}
 function connCard(c, live, served) {
   const st = connState(), L = live ? live.connectors.find(x => x.id === c.id) : null, state = L ? L.state : c.how === 'api' ? null : c.how;
-  const [cls, label] = state ? CONN_STATE[state] : ['flagged', served ? 'Checking…' : 'Needs the server'];
+  const [, label] = state ? CONN_STATE[state] : ['flagged', served ? 'Checking…' : 'Start the server'];
+  const B = CONN_BRAND[c.id] || CONN_BRAND.saas_other;
   const env = (L ? L.env : c.env).filter(v => !v.alt || (L && L.env.some(x => x.alt)));
-  const conf = (L && L.config) || {}, val = (s) => { const v = conf[s.key]; return v == null ? '' : typeof v === 'object' ? Object.entries(v).map(([k, x]) => `${k}=${x}`).join('; ') : v; };
-  const msg = st.msg[c.id], last = L && L.last;
-  const open = st.open === c.id;
-  return `<div class="conn-c ${state === 'ready' ? 'ok' : ''}" data-conn="${c.id}">
-    <div class="conn-h">${plogo(CONN_LOGO[c.id], 'lg')}
-      <div class="conn-t"><b>${esc(c.name)}</b><span class="small muted">Writes ${c.targets.map(t => `<code>${esc(t)}</code>`).join(', ')}</span>
-        ${CONN_ALSO[c.id] ? `<span class="conn-also">${CONN_ALSO[c.id].map(k => plogo(k, 'sm')).join('')}</span>` : ''}</div>
-      <span class="tag ${cls}" title="${esc(CONN_HINT[state] || '')}">${label}</span></div>
-    ${env.length ? `<div class="conn-env">${env.map(v => `<span class="conn-v ${v.set ? 'set' : ''}" title="${v.set ? 'set on this computer (value never shown)' : 'not set'}">${v.alt ? '<i>or</i> ' : ''}${v.set ? '✓' : '○'} <code>${esc(v.name)}</code></span>`).join('')}</div>` : ''}
-    ${c.settings.length && served ? `<div class="conn-set">${c.settings.map(s => `<label>${esc(s.label)}<input data-cs="${c.id}:${s.key}" placeholder="${esc(s.placeholder || '')}" value="${esc(val(s))}"></label>`).join('')}
-      <button class="linkish" data-csave="${c.id}">Save settings</button></div>` : ''}
-    <div class="conn-act">
-      ${c.how === 'api' ? `<button class="btn ${state === 'ready' ? '' : 'ghost'}" data-pull="${c.id}" ${!served || state !== 'ready' || st.busy ? 'disabled' : ''}>${st.busy === c.id ? 'Pulling…' : 'Pull'}</button>` : ''}
-      ${c.id === 'focus' ? `<label class="btn ghost conn-file ${!served || st.busy ? 'dis' : ''}"><input type="file" id="focusPick" accept=".csv" ${!served || st.busy ? 'disabled' : ''}>${st.busy === 'focus' ? 'Converting…' : 'Choose a FOCUS CSV'}</label>` : ''}
-      ${c.id === 'saas_other' ? `<a class="btn ghost" href="downloads/inputs/saas_contracts.csv" download>Template: saas_contracts.csv</a>` : ''}
-      <button class="linkish" data-chow="${c.id}" aria-expanded="${open}">${open ? 'Hide the setup' : 'How to connect'}</button></div>
-    ${open ? `<div class="conn-how"><ol>${c.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-      <p class="small"><b>Permission:</b> ${esc(c.permission)}${c.docs ? ` · <a href="${esc(c.docs)}" target="_blank" rel="noopener noreferrer">Provider docs</a>` : ''}</p></div>` : ''}
-    ${msg ? `<div class="note ${msg.ok ? 'info' : 'stop'} conn-msg">${msg.ok ? `✓ ${msg.files.map(f => `${esc(f.file)}: ${n0(f.rows)} rows${f.kept ? ` (${n0(f.kept)} kept from other sources and dates)` : ''}`).join(' · ')}.
-        ${(msg.report.warnings || []).map(w => `<div>${esc(w)}</div>`).join('')}${msg.report.note ? `<div class="muted">${esc(msg.report.note)}</div>` : ''}
-        ${msg.report.rows_other ? `<div>${n0(msg.report.rows_other)} rows from ${esc(msg.report.other_providers.join(', '))} (${n0(msg.report.cost_other)} in their currency): no reader for them yet, not imported.</div>` : ''}
-        ${msg.report.rows_no_energy ? `<div>${n0(msg.report.rows_no_energy)} rows have a unit the energy model does not know: cost counted, no kWh.</div>` : ''}` : `✗ ${esc(msg.error)}`}</div>`
-      : last ? `<p class="small muted conn-last">Last ${c.how === 'file' ? 'import' : 'pull'}: ${esc(last.at)}${last.ok ? `, ${n0(last.rows)} rows` : ' failed'}</p>` : ''}
+  const conf = (L && L.config) || {}, val = s => { const v = conf[s.key]; return v == null ? '' : typeof v === 'object' ? Object.entries(v).map(([k, x]) => `${k}=${x}`).join('; ') : v; };
+  const msg = st.msg[c.id], last = L && L.last, open = st.open === c.id, ready = state === 'ready';
+  const steps = connSteps(c, L, state);
+  const btnStyle = `--b:${B.btn};--bi:${B.btnInk || '#fff'}`;
+  return `<div class="cn ${ready ? 'ok' : ''}" data-conn="${c.id}">
+    <div class="cn-band" style="background:linear-gradient(135deg,${B.band[0]},${B.band[1]})">
+      <span class="cn-logo">${plogo(CONN_LOGO[c.id], 'xl')}</span>
+      <div class="cn-name"><b>${esc(c.name)}</b><small>${esc(c.category)}</small></div>
+      <span class="cn-state ${ready ? 'ok' : ''}">${ready ? '● ' : ''}${label}</span>
+      ${CONN_ALSO[c.id] ? `<span class="cn-also">${CONN_ALSO[c.id].map(k => plogo(k, 'sm')).join('')}</span>` : ''}
+    </div>
+    <div class="cn-body">
+      <div class="cn-row">${cic('eye')}<div><span class="cn-k">What we read</span><p>${esc(B.what)}</p></div></div>
+      <div class="cn-row">${cic('lock')}<div><span class="cn-k">Access</span><p>${esc(c.permission)}</p></div></div>
+      <div class="cn-row">${cic('file')}<div><span class="cn-k">Fills in</span><p>${c.targets.map(t => `<code>${esc(t)}</code>`).join(' ')}</p></div></div>
+      <ol class="cn-steps">${steps.map(([t, done], i) => `<li class="${done ? 'done' : ''}"><span>${done ? '✓' : i + 1}</span>${esc(t)}</li>`).join('')}</ol>
+      ${env.length ? `<div class="cn-env">${env.map(v => `<span class="cn-v ${v.set ? 'set' : ''}" title="${v.set ? 'set on this computer (the value is never shown)' : 'not set yet'}">${v.alt ? '<i>or</i> ' : ''}${v.set ? '✓' : cic('key', 'cn-ki')} <code>${esc(v.name)}</code></span>`).join('')}</div>` : ''}
+      ${c.settings.length && served ? `<div class="conn-set">${c.settings.map(s => `<label>${esc(s.label)}<input data-cs="${c.id}:${s.key}" placeholder="${esc(s.placeholder || '')}" value="${esc(val(s))}"></label>`).join('')}
+        <button class="linkish" data-csave="${c.id}">Save settings</button></div>` : ''}
+      <div class="cn-act">
+        ${c.how === 'api' ? `<button class="cn-btn" style="${btnStyle}" data-pull="${c.id}" ${!served || !ready || st.busy ? 'disabled' : ''}>${cic('pull', 'cn-bi')}${st.busy === c.id ? 'Pulling…' : esc(B.verb)}</button>` : ''}
+        ${c.id === 'focus' ? `<label class="cn-btn conn-file ${!served || st.busy ? 'dis' : ''}" style="${btnStyle}"><input type="file" id="focusPick" accept=".csv" ${!served || st.busy ? 'disabled' : ''}>${cic('file', 'cn-bi')}${st.busy === 'focus' ? 'Converting…' : esc(B.verb)}</label>` : ''}
+        ${c.id === 'saas_other' ? `<a class="cn-btn" style="${btnStyle}" href="downloads/inputs/saas_contracts.csv" download>${cic('pull', 'cn-bi')}${esc(B.verb)}</a>` : ''}
+        <button class="linkish" data-chow="${c.id}" aria-expanded="${open}">${open ? 'Hide the steps' : 'How to connect'}</button></div>
+      ${open ? `<div class="cn-how"><ol>${c.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+        ${c.docs ? `<a href="${esc(c.docs)}" target="_blank" rel="noopener noreferrer">Provider documentation</a>` : ''}</div>` : ''}
+      ${msg ? `<div class="note ${msg.ok ? 'info' : 'stop'} conn-msg">${msg.ok ? `✓ ${msg.files.map(f => `${esc(f.file)}: ${n0(f.rows)} rows${f.kept ? ` (${n0(f.kept)} kept from other sources and dates)` : ''}`).join(' · ')}.
+          ${(msg.report.warnings || []).map(w => `<div>${esc(w)}</div>`).join('')}${msg.report.note ? `<div class="muted">${esc(msg.report.note)}</div>` : ''}
+          ${msg.report.rows_other ? `<div>${n0(msg.report.rows_other)} rows from ${esc(msg.report.other_providers.join(', '))} (${n0(msg.report.cost_other)} in their currency): no reader for them yet, not imported.</div>` : ''}
+          ${msg.report.rows_no_energy ? `<div>${n0(msg.report.rows_no_energy)} rows have a unit the energy model does not know: cost counted, no kWh.</div>` : ''}` : `✗ ${esc(msg.error)}`}</div>`
+        : last ? `<p class="small muted conn-last">Last ${c.how === 'file' ? 'import' : 'pull'}: ${esc(last.at)}${last.ok ? `, ${n0(last.rows)} rows` : ' failed'}</p>` : ''}
+    </div>
   </div>`;
 }
 function connSection(served) {
   const cat = D.connectors || [], st = connState(), live = st.live;
   if (!cat.length) return '';
-  const groups = ['Cloud', 'AI', 'SaaS'].map(g => [g, cat.filter(c => c.category === g)]).filter(([, cs]) => cs.length);
-  return `<div class="card conn-card"><div class="card-h"><div><h2>Connect your accounts</h2>
-      <p class="sub">Pull cost and usage straight from your cloud, AI and SaaS providers. Read-only access; credentials stay in environment variables on this computer and are never shown here. Pulled data goes into your workspace with the same format check as uploads.</p></div></div>
+  const groups = [['Cloud', 'Cloud platforms'], ['AI', 'AI providers'], ['SaaS', 'Software subscriptions']]
+    .map(([g, l]) => [l, cat.filter(c => c.category === g)]).filter(([, cs]) => cs.length);
+  return `<section class="card conn-card cn-wrap">
+    <div class="cn-head"><div><h2>Connect your accounts</h2>
+      <p class="sub">Instead of exporting files by hand every month, let Kilowise read cost and usage straight from your providers. Read-only, and your keys never leave this computer.</p></div>
+      <div class="cn-logos">${['aws', 'azure', 'gcloud', 'openai', 'anthropic', 'm365', 'slack', 'zoom'].map(k => plogo(k, 'md')).join('')}</div></div>
+    <div class="cn-how3">
+      <div>${cic('pick', 'cn-hi')}<b>1 · Pick your provider</b><span>Cloud, AI or software subscriptions, below.</span></div>
+      <div>${cic('key', 'cn-hi')}<b>2 · Give read-only access</b><span>A key that can only read costs, kept in a local settings file.</span></div>
+      <div>${cic('pull', 'cn-hi')}<b>3 · Pull and build</b><span>Data lands in your workspace with the same checks as an upload.</span></div>
+    </div>
     ${served ? `<div class="conn-period"><label>From<input type="date" id="connFrom" value="${esc(st.from)}"></label><label>To<input type="date" id="connTo" value="${esc(st.to)}"></label>
       <span class="small muted">A pull replaces only its own source's rows in this period; everything else in the workspace stays.</span></div>`
-      : `<div class="note info">To connect accounts, start the app with <code>uv run greenledger serve</code> and open it at <code>http://127.0.0.1:8501</code>. You can also pull from the command line: <code>uv run greenledger pull</code> lists the connectors.</div>`}
-    ${groups.map(([g, cs]) => `<h3 class="conn-g">${g}</h3><div class="conn-grid">${cs.map(c => connCard(c, live, served)).join('')}</div>`).join('')}
-    <p class="small muted" style="margin:12px 0 0">Secrets go in <code>.env</code> (see <code>.env.example</code>, never committed) or the shell; restart <code>serve</code> after changing them. After a pull, build the workspace with the button above.</p></div>`;
+      : `<div class="cn-server">${cic('plug', 'cn-si')}<div><b>Connecting needs the local app server</b><span>Start Kilowise with <code>start.bat</code> or <code>uv run greenledger serve</code>, then open it at <code>127.0.0.1:8501</code>. From the command line: <code>uv run greenledger pull</code>.</span></div></div>`}
+    ${groups.map(([g, cs]) => `<h3 class="conn-g">${g}</h3><div class="cn-grid">${cs.map(c => connCard(c, live, served)).join('')}</div>`).join('')}
+    <p class="small muted" style="margin:14px 0 0">Keys go in a <code>.env</code> file on this computer (see <code>.env.example</code>; never shared or committed). Restart the server after changing them. After a pull, build the workspace with the button above. Logos and names belong to their owners and only show which account a connector reads.</p>
+  </section>`;
 }
+
 function wireConn(served) {
   const st = connState();
   $$('[data-chow]').forEach(b => b.onclick = () => { st.open = st.open === b.dataset.chow ? null : b.dataset.chow; render(); });

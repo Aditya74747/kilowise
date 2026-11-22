@@ -1,0 +1,1 @@
+date,resource_id,tool,department,task_type,model_class,provider,model,requests,tokens_in,tokens_in_cache,tokens_out,cost_chf,project_id

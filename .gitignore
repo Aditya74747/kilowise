@@ -21,13 +21,18 @@ data/raw/external/reference/ember_*.csv
 # Upload workspace of `greenledger serve` (another company's exports and their outputs)
 workspace/
 
-# ---- Public GitHub repository: keep data, dot-files and assistant notes out ----
-# Case data (sample data ALTYCA, sprintd Basel 2026) and everything copied from it; see README "Data"
-data/
-app/downloads/inputs/
+# ---- Public GitHub repository: keep dot-files and assistant notes out ----
+# The case data (synthetic, free to use: sample data ALTYCA, sprintd Basel 2026) is committed; the grid downloads are
+# refetched with `greenledger grid-fetch`
+data/raw/external/grid/
 # Dot-files and dot-folders (editor, tool and environment settings); only this file stays
 .*
 !.gitignore
+!.env.example
 # Notes for the coding assistant
 CLAUDE.md
 **/CLAUDE.md
+
+# Pitch demo video (about 35 MB; rebuild with tools/video/record_demo.py, share it separately)
+pitch/assets/*.mp4
+pitch_video/

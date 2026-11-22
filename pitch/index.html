@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kilowise Pitch</title>
+<style>
+@font-face{font-family:"Hanken Grotesk";src:url(assets/HankenGrotesk-var.ttf) format("truetype");font-weight:100 900;font-display:swap}
+:root{
+  --paper:#f6f8f6; --card:#fff; --ink:#14211c; --ink2:#45524c; --mute:#7f8b85; --line:#e3e9e5;
+  --brand:#146c53; --brand2:#2a7a5f; --wash:#e3f2ea; --wash2:#f0f7f3; --mint:#3ccf97; --deep:#0b2a21; --warm:#b4532a; --warmwash:#fbefe8;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --shadow:0 .2rem .6rem rgba(20,33,28,.05),0 1.2rem 3.4rem rgba(20,33,28,.08);
+}
+html{font-size:clamp(9px,min(.92vw,1.62vh),23px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--paper);color:var(--ink);font-family:"Hanken Grotesk","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(60rem 40rem at 88% 8%,rgba(60,207,151,.10),transparent 70%),radial-gradient(50rem 36rem at 4% 100%,rgba(20,108,83,.06),transparent 70%)}
+
+/* ---------- chrome ---------- */
+.nav{position:fixed;inset:0 0 auto 0;height:5.2rem;display:flex;align-items:center;gap:2.4rem;padding:0 3.2rem;z-index:20;font-size:1.25rem;pointer-events:none}
+.nav .brand{font-weight:700;display:flex;align-items:center;gap:.8rem;pointer-events:auto;cursor:pointer}
+.nav .brand svg{width:1.9rem;height:1.9rem;fill:none;stroke:var(--brand);stroke-width:2;stroke-linecap:round}
+.nav .brand span{color:var(--mute);font-weight:500}
+.nav .sec{margin-left:auto;display:flex;gap:2rem;pointer-events:auto}
+.nav .sec a{color:var(--ink);opacity:.42;text-decoration:none;cursor:pointer;transition:opacity .3s}
+.nav .sec a.on{opacity:1;font-weight:650}
+.nav .sec a:hover{opacity:.85}
+.dots{position:fixed;right:1.8rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1rem;z-index:20}
+.dots b{width:.75rem;height:.75rem;border-radius:50%;background:var(--ink);opacity:.2;cursor:pointer;transition:all .3s var(--ease)}
+.dots b.on{opacity:1;height:2.2rem;border-radius:.4rem;background:var(--brand)}
+.bar{position:fixed;left:0;bottom:0;height:.3rem;background:var(--brand);z-index:20;transition:width .6s var(--ease)}
+.hint{position:fixed;left:3.2rem;bottom:1.6rem;font-size:1.1rem;color:var(--mute);z-index:20;transition:opacity .6s}
+.count{position:fixed;right:3.2rem;bottom:1.6rem;font-size:1.1rem;color:var(--mute);z-index:20;font-variant-numeric:tabular-nums}
+.notes{position:fixed;left:50%;bottom:3.2rem;transform:translate(-50%,1rem);width:min(90vw,92rem);max-height:42vh;overflow:auto;
+  background:rgba(11,42,33,.96);color:#fff;border-radius:1rem;padding:1.6rem 2rem;font-size:1.35rem;
+  line-height:1.5;white-space:pre-wrap;z-index:30;opacity:0;pointer-events:none;transition:all .3s var(--ease)}
+body.shownotes .notes{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+
+/* ---------- scenes ---------- */
+.scene{position:fixed;inset:0;display:flex;align-items:center;padding:7rem 6.5rem 5.5rem;opacity:0;visibility:hidden;
+  transform:translateY(3rem);transition:opacity .7s var(--ease),transform .9s var(--ease),visibility 0s .9s}
+.scene.up{transform:translateY(-3rem)}
+.scene.on{opacity:1;visibility:visible;transform:none;transition:opacity .7s var(--ease) .1s,transform .9s var(--ease) .1s,visibility 0s}
+.r{opacity:0;transform:translateY(1.6rem);transition:opacity .8s var(--ease),transform .9s var(--ease)}
+.scene.on .r{opacity:1;transform:none;transition-delay:calc(.25s + var(--i,0) * .12s)}
+.scene .r.later{opacity:0;transform:translateY(1.6rem)}
+.scene.s1 .r.later{opacity:1;transform:none;transition-delay:calc(.1s + var(--i,0) * .12s)}
+.eyebrow{font-size:1.25rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--brand)}
+h1{font-size:7.6rem;line-height:1.02;font-weight:800;letter-spacing:-.03em}
+h2{font-size:3.9rem;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin-top:.6rem}
+h2 em,h1 em{font-style:normal;color:var(--brand2)}
+h3{font-size:1.95rem;font-weight:700;line-height:1.2}
+p{font-size:1.5rem;line-height:1.5;color:var(--ink2)}
+p.lead{font-size:2rem;line-height:1.45;color:var(--ink2)}
+.wrap{width:100%;max-width:150rem;margin:0 auto}
+
+/* the card language of the whole deck */
+.card{background:var(--card);border-radius:1.4rem;padding:2.2rem 2.4rem;box-shadow:var(--shadow);position:relative}
+.card .n{font-size:1.15rem;font-weight:800;letter-spacing:.14em;color:var(--brand);text-transform:uppercase}
+.card h3{margin:.5rem 0 .5rem}
+.card p{font-size:1.45rem}
+.ic{width:4.4rem;height:4.4rem;border-radius:1.2rem;display:grid;place-items:center;background:var(--wash);margin-bottom:1.2rem}
+.ic svg{width:55%;height:55%;fill:none;stroke:var(--brand);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6rem;margin-top:2.6rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:2.6rem}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:1.8rem;margin-top:2.6rem}
+.band{border-radius:1.4rem;padding:1.6rem 2.4rem;background:var(--deep);color:#fff;display:flex;align-items:center;gap:2rem;margin-top:1.8rem}
+.band b{font-size:2.4rem;font-weight:800;letter-spacing:-.01em;color:var(--mint);white-space:nowrap}
+.band span{font-size:1.5rem;color:#cfe9dd}
+
+/* title */
+#title .copy{width:48%;display:flex;flex-direction:column;gap:1.8rem;position:relative;z-index:2}
+#title h1 small{display:block;font-size:2.6rem;font-weight:600;color:var(--brand2);letter-spacing:-.01em;margin-top:1.2rem}
+#title .slogan{font-size:2.9rem;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+#title .slogan b{color:var(--brand2)}
+.team{display:inline-flex;align-items:center;gap:1.4rem;align-self:flex-start;margin-top:1rem;padding:1rem 2.2rem 1rem 1.1rem;background:#fff;border-radius:5rem;box-shadow:var(--shadow)}
+.team .logo{width:4.2rem;height:4.2rem;border-radius:50%;display:grid;place-items:center;background:var(--brand)}
+.team .logo svg{width:56%;height:56%;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.team div{display:flex;flex-direction:column}
+.team small{font-size:1.05rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.team strong{font-size:2.1rem}
+#title .shot{position:absolute;right:-4rem;top:50%;width:56%;transform:translateY(-50%) perspective(160rem) rotateY(-12deg) rotateX(2deg);
+  border-radius:1.4rem;overflow:hidden;box-shadow:0 3rem 7rem rgba(20,33,28,.22),0 0 0 1px rgba(20,33,28,.06);
+  clip-path:inset(0 0 0 100% round 1.4rem);transition:clip-path 1.4s var(--ease) .3s}
+#title.on .shot{clip-path:inset(0 0 0 0 round 1.4rem)}
+#title .shot img{display:block;width:100%}
+
+/* challenge */
+.targets{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;margin-top:1.8rem}
+.targets div{border-radius:1.4rem;padding:1.4rem 2.2rem;background:var(--deep);color:#fff;display:flex;align-items:baseline;gap:1.4rem}
+.targets b{font-size:3.4rem;font-weight:850;letter-spacing:-.02em;color:var(--mint);white-space:nowrap}
+.targets span{font-size:1.45rem;color:#cfe9dd}
+
+/* demo */
+#demo .wrap{display:flex;flex-direction:column;align-items:center;gap:1.4rem}
+#demo .vbox{position:relative;width:min(100%,calc((100vh - 21rem) * 16 / 9));aspect-ratio:16/9;border-radius:1.4rem;overflow:hidden;
+  box-shadow:0 2.4rem 6rem rgba(20,33,28,.22),0 0 0 1px rgba(20,33,28,.06);background:#fff}
+#demo video{width:100%;height:100%;display:block}
+#demo .vhead{display:flex;width:min(100%,calc((100vh - 21rem) * 16 / 9));align-items:flex-end;justify-content:space-between;gap:2rem}
+#demo .vhead h2{font-size:3.2rem;white-space:nowrap}
+.chapters{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center}
+.chapters button{font:inherit;font-size:1.15rem;white-space:nowrap;background:#fff;color:var(--ink2);border:1px solid var(--line);
+  border-radius:2rem;padding:.4rem 1.1rem;cursor:pointer;transition:all .2s}
+.chapters button:hover,.chapters button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* the four answers the case asks for */
+#proof .g2{gap:1.6rem;margin-top:2.2rem}
+#proof .card{padding:2rem 2.4rem;display:flex;flex-direction:column}
+#proof .tagl{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+#proof .tagl .ic{width:3.4rem;height:3.4rem;border-radius:1rem;margin:0}
+#proof h3{font-size:2.2rem;margin:0 0 .5rem;letter-spacing:-.01em}
+#proof p{font-size:1.4rem}
+#proof p b{color:var(--ink)}
+#proof .edge{box-shadow:var(--shadow),inset 0 0 0 1.5px rgba(180,83,42,.35)}
+#proof .edge .n{color:var(--warm)}
+#proof .edge .ic{background:var(--warmwash)}
+#proof .edge .ic svg{stroke:var(--warm)}
+#proof .edge h3 em{font-style:normal;color:var(--warm)}
+.meters{display:grid;grid-template-columns:auto 1fr auto;gap:.75rem 1.4rem;align-items:center;margin-top:.4rem}
+.meters span{font-size:1.3rem;color:var(--ink2)}
+.meters b{font-size:1.45rem;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.meters b small{font-size:1.15rem;font-weight:500;color:var(--mute);margin-left:.5rem}
+.meter{position:relative;height:.9rem;border-radius:1rem;background:var(--wash2)}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:1rem;background:var(--brand2);width:0;transition:width 1.2s var(--ease) .7s}
+#proof.on .meter i{width:var(--w)}
+.meter u{position:absolute;top:-.45rem;bottom:-.45rem;width:2px;background:var(--ink);opacity:.55;left:var(--t);border-radius:1px}
+
+/* accountable */
+#change .card{display:flex;gap:1.8rem;align-items:flex-start;padding:2rem 2.4rem}
+#change .card .ic{margin:0;flex:none}
+#change .card h3{margin-top:.2rem}
+
+/* why it lasts */
+.imgcard{background:#fff;border-radius:1.4rem;padding:1.2rem 1.2rem 2rem;box-shadow:var(--shadow)}
+.imgcard .ph{aspect-ratio:16/9;border-radius:1rem;background:#fff center/100% 100% no-repeat;margin-bottom:.4rem;border:1px solid var(--line)}
+.imgcard h3{margin:1.3rem 1rem .5rem}
+.imgcard p{padding:0 1rem;font-size:1.45rem}
+
+/* close */
+#close .copy{width:56%;position:relative;z-index:2}
+#close h1{font-size:5.4rem}
+#close .imgs{position:absolute;right:5rem;top:50%;transform:translateY(-50%);width:34%;display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;align-items:start}
+#close .imgs img{width:100%;max-height:60vh;object-fit:cover;object-position:top;border-radius:1.2rem;box-shadow:0 2rem 5rem rgba(20,33,28,.18);
+  clip-path:inset(0 0 0 100% round 1.2rem);transition:clip-path 1.2s var(--ease)}
+#close.on .imgs img{clip-path:inset(0 round 1.2rem)}
+#close.on .imgs img:nth-child(2){transition-delay:.25s}
+.pill{display:inline-block;font-size:1.35rem;font-weight:600;padding:.6rem 1.3rem;border-radius:2rem;background:var(--wash);color:var(--brand);margin:0 .6rem .8rem 0}
+
+@media (max-width:700px),(max-aspect-ratio:1/1){
+  html{font-size:clamp(8px,2.2vw,14px)}
+  .scene{padding:6rem 1.6rem 5rem;align-items:flex-start;overflow-y:auto}
+  .g4,.g3,.g2,.targets{grid-template-columns:1fr}
+  #title .copy,#close .copy{width:100%}
+  #title .shot,#close .imgs{display:none}
+  .nav .sec,.dots{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand" onclick="go(0)"><svg viewBox="0 0 24 24"><path d="M5 19c0-8 6-13 15-14-1 9-6 15-14 15"/><path d="M5 19l8-8"/></svg>Kilowise <span>· Mini Militia</span></div>
+  <nav class="sec" id="sec"></nav>
+</header>
+<div class="dots" id="dots"></div>
+<div class="bar" id="bar"></div>
+<div class="hint" id="hint">← → or scroll · F fullscreen · N notes</div>
+<div class="count" id="count"></div>
+<div class="notes" id="notes"></div>
+
+<!-- 1 title -->
+<section class="scene" id="title" data-sec="Intro">
+  <div class="copy">
+    <div class="eyebrow r" style="--i:0">sprintd Basel 2026 · Green AI &amp; Data · ALTYCA × Basel 2037</div>
+    <h1 class="r" style="--i:1">Kilowise<small>Every kWh accounted for</small></h1>
+    <div class="slogan r" style="--i:2">Digital work has a footprint.<br><b>We make it accountable.</b></div>
+    <div class="team r" style="--i:3">
+      <span class="logo"><svg viewBox="0 0 24 24"><path d="M5 19c0-8 6-13 15-14-1 9-6 15-14 15"/><path d="M5 19l8-8"/></svg></span>
+      <div><small>Presented by</small><strong>Mini Militia</strong></div>
+    </div>
+  </div>
+  <div class="shot"><img src="assets/app_overview.jpg" alt="The Kilowise leadership dashboard"></div>
+</section>
+
+<!-- 2 challenge -->
+<section class="scene" id="challenge" data-sec="Challenge">
+  <div class="wrap">
+    <div class="eyebrow r" style="--i:0">The challenge</div>
+    <h2 class="r" style="--i:1">Turn 28 exports into one picture,<br>then a plan that breaks nothing.</h2>
+    <div class="g4">
+      <div class="card r" style="--i:2"><span class="ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></span>
+        <div class="n">Connect</div><h3>One ledger</h3><p>Invoices, servers, AI and SaaS: cost, kWh and CO₂ by month, team and place.</p></div>
+      <div class="card r" style="--i:3"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+        <div class="n">Find</div><h3>Drivers and waste</h3><p>What runs without working, and what is paid but unused.</p></div>
+      <div class="card r" style="--i:4"><span class="ic"><svg viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg></span>
+        <div class="n">Decide</div><h3>A package of measures</h3><p>Each with saving, effort, owner and risk.</p></div>
+      <div class="card r" style="--i:5"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <div class="n">Know the limits</div><h3>Nothing critical breaks</h3><p>Month-end close, nightly jobs, the disaster-recovery server.</p></div>
+    </div>
+    <div class="targets">
+      <div class="r" style="--i:6"><b>−40 %</b><span>CO₂, location-based</span></div>
+      <div class="r" style="--i:7"><b>−25 %</b><span>cost per year</span></div>
+      <div class="r" style="--i:8"><b>≤ 15</b><span>person-days of effort</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 demo -->
+<section class="scene" id="demo" data-sec="Demo">
+  <div class="wrap">
+    <div class="vhead r" style="--i:0"><div><div class="eyebrow">What we built</div><h2>Kilowise, live on the case data</h2></div></div>
+    <div class="vbox r" style="--i:1">
+      <video id="video" src="assets/kilowise_demo.mp4" poster="assets/demo_cover.jpg" controls muted playsinline preload="metadata"></video>
+    </div>
+    <div class="chapters r" style="--i:2" id="chapters"></div>
+  </div>
+</section>
+
+<!-- 4 the four answers the case asks for: overall picture, one finding, the package, one edge case -->
+<section class="scene" id="proof" data-sec="Answers">
+  <div class="wrap">
+    <div class="eyebrow r" style="--i:0">What the case asked for</div>
+    <h2 class="r" style="--i:1">Four answers, straight from the data.</h2>
+    <div class="g2">
+      <div class="card r" style="--i:2">
+        <div class="tagl"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="n">The overall picture</span></div>
+        <h3>6'164 kg CO₂ and CHF 465'668 a year</h3>
+        <p>28 exports in one ledger, by month, team and place. Two data platforms cause <b>more than half the CO₂</b>.</p></div>
+      <div class="card r" style="--i:3">
+        <div class="tagl"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><span class="n">One finding</span></div>
+        <h3>Dev cluster: on 24/7, busy 2 hours a day</h3>
+        <p>On Frankfurt's coal-heavy grid it is the <b>largest single source: 1'871 kg CO₂</b>. It now pauses outside office hours and moves to Zurich.</p></div>
+      <div class="card r" style="--i:4">
+        <div class="tagl"><span class="ic"><svg viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg></span><span class="n">The package</span></div>
+        <h3>12 measures reach every target</h3>
+        <div class="meters">
+          <span>CO₂</span><div class="meter"><i style="--w:81%"></i><u style="--t:66.7%"></u></div><b>−48.8 %<small>target −40 %</small></b>
+          <span>Cost</span><div class="meter"><i style="--w:55.7%"></i><u style="--t:41.7%"></u></div><b>−33.4 %<small>target −25 %</small></b>
+          <span>Effort</span><div class="meter"><i style="--w:75%"></i><u style="--t:75%"></u></div><b>15 days<small>budget 15</small></b>
+        </div></div>
+      <div class="card edge r" style="--i:5">
+        <div class="tagl"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg></span><span class="n">One edge case</span></div>
+        <h3><em>Refused:</em> production off every night</h3>
+        <p>It looked like the biggest saving, but replaying 2'741 real job runs, <b>1'894 would fail</b>, among them the month-end close. A gentler schedule passes instead. Orders hidden in the data are ignored.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 what changes -->
+<section class="scene" id="change" data-sec="What changes">
+  <div class="wrap">
+    <div class="eyebrow r" style="--i:0">What changes</div>
+    <h2 class="r" style="--i:1">From invisible to accountable.</h2>
+    <div class="g2">
+      <div class="card r" style="--i:2"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+        <div><h3>Every kWh has an owner</h3><p>Each server, cluster, AI tool and licence belongs to a team and a person who decides. The footprint becomes someone's job, not nobody's.</p></div></div>
+      <div class="card r" style="--i:3"><span class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span>
+        <div><h3>Every number has a source</h3><p>From the invoice line to kg CO₂: each step, each factor and its range, each reference. Computed by code, never guessed by an AI.</p></div></div>
+      <div class="card r" style="--i:4"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <div><h3>Every cut is checked</h3><p>Savings never cost safety: each new schedule is tested against the real job log, and what would break things is refused or handed to a person.</p></div></div>
+      <div class="card r" style="--i:5"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/></svg></span>
+        <div><h3>Every AI choice is informed</h3><p>Which model, how big, which grid it runs on: compared on the company's own use, so the greener choice is also the obvious one.</p></div></div>
+    </div>
+    <div class="band r" style="--i:6"><b>About half the CO₂</b><span>and a third of the cost for the case company, within its effort budget, with nothing critical switched off.</span></div>
+  </div>
+</section>
+
+<!-- 6 why it lasts -->
+<section class="scene" id="lasts" data-sec="Why it lasts">
+  <div class="wrap">
+    <div class="eyebrow r" style="--i:0">Why it lasts</div>
+    <h2 class="r" style="--i:1">Built to be trusted, month after month.</h2>
+    <div class="g3">
+      <div class="imgcard r" style="--i:2"><div class="ph" style="background-image:url(assets/calc_panel.jpg)"></div>
+        <h3>Honest about uncertainty</h3><p>Every estimate shows its low, middle and high value and where it comes from. The plan holds even when we assume the worst.</p></div>
+      <div class="imgcard r" style="--i:3"><div class="ph" style="background-image:url(assets/rule_engine.jpg)"></div>
+        <h3>It knows its limits</h3><p>It refuses what would break the business, and it ignores orders hidden in the data. A person always decides.</p></div>
+      <div class="imgcard r" style="--i:4"><div class="ph" style="background-image:url(assets/grid_map.jpg)"></div>
+        <h3>Beyond one company</h3><p>Upload your own exports or connect your cloud and AI accounts, and compare Europe's grids from open data. Our own AI use is counted too.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 close -->
+<section class="scene" id="close" data-sec="Close">
+  <div class="copy">
+    <div class="eyebrow r" style="--i:0">Kilowise · Mini Militia</div>
+    <h1 class="r" style="--i:1;margin-top:1.4rem">Electricity is the new currency.<br><em>Now someone keeps the books.</em></h1>
+    <p class="lead r" style="--i:2;margin-top:2rem">So that every company can see its digital footprint, own it, and shrink it, without breaking what matters.</p>
+    <div class="r" style="--i:3;margin-top:2rem"><span class="pill">Visible</span><span class="pill">Accountable</span><span class="pill">Safe to act on</span></div>
+    <p class="lead r" style="--i:4;margin-top:2rem;color:var(--brand);font-weight:700">Thank you. Questions?</p>
+  </div>
+  <div class="imgs"><img src="assets/kilo.jpg" alt="Kilo, the assistant"><img src="assets/models_scatter.jpg" alt="Comparing AI models" style="margin-top:6rem"></div>
+</section>
+
+<script src="assets/demo_chapters.js"></script>
+<script>
+// Steps = [scene id, sub-step]; sub-step 1 reveals the ".later" elements.
+const STEPS = [["title",0],["challenge",0],["demo",0],["proof",0],["change",0],["lasts",0],["close",0]];
+// What to say over each demo chapter (times come from assets/demo_chapters.js, written by tools/video/record_demo.py)
+const SAY = {
+  "Overview": "This is Kilowise on the case company. The answer comes first: the plan, and whether it reaches the targets. Leadership sees the essentials, for any period.",
+  "Targets": "Every target at a glance. Take one measure away, and the plan no longer reaches the CO₂ goal: every measure matters. Back to the plan.",
+  "IT team": "The IT team gets its own view: the biggest sources, and the change that fixes each one.",
+  "Footprint": "We count CO₂ where the data centre really stands: the same kWh is far dirtier in Frankfurt than in Zurich. And every number opens to show how it was calculated.",
+  "Insight": "One example of what was hidden: a development cluster running day and night, busy only a few hours.",
+  "Action plan": "The plan holds even with pessimistic assumptions.",
+  "Safeguards": "Knowing the limits: protection windows from tickets and the scheduler. Switching production off at night is refused, because real jobs would break. Hidden instructions in the data are quarantined.",
+  "Kilo": "Anyone can ask Kilo in plain words. It answers from the ledger, suggests actions that only happen when you click, and refuses injected orders.",
+  "Models": "Choosing AI responsibly: open and closed models compared on the company's own use, including where they were trained.",
+  "Grid": "Europe's power grids from open data, to move flexible work to cleaner places and hours.",
+  "Reports": "Ready to act: the filled case templates download in one click. And we count our own AI use too.",
+  "Connectors": "And for next month: connect cloud and AI accounts read-only, and the same checks run again.",
+};
+const CHAPTERS = (window.DEMO_CHAPTERS || []).filter(([n]) => SAY[n]);
+const fmtT = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const NOTES = {
+  title: "OPENING (10 s)\nWe are Mini Militia, and this is Kilowise. Digital work has a footprint, and we make it accountable.",
+  challenge: "CHALLENGE (20 s)\nThe cloud is not weightless: every prompt and every server runs on a real power grid, but the cost lands on an invoice and the CO2 lands nowhere, so nobody owns it. The case asks for exactly that: connect the exports into one picture, find the waste, decide on measures, and know the limits so nothing critical breaks. With clear targets for CO₂, cost and effort.",
+  demo: "DEMO (about 2:50, starts by itself; no sound, you speak over it. K pauses if you need a moment)\n" +
+        CHAPTERS.map(([n, t]) => `${fmtT(t)}  ${SAY[n]}`).join("\n"),
+  proof: "THE FOUR ANSWERS (20 s)\nWhat the case asked for, in one place. The overall picture: 6,164 kg CO2 and 466,000 francs a year, more than half from two data platforms. One finding: the dev cluster runs day and night in Frankfurt, busy two hours a day, the largest single source. The package: 12 measures reach every target, within the 15 days. And one edge case: switching production off every night looked like the biggest saving, but 1,894 real jobs would have failed, so Kilowise refused it and a person decides.",
+  change: "WHAT CHANGES (20 s)\nKilowise turns an invisible footprint into an accountable one. Every kWh gets an owner. Every number has a source you can check. Every cut is tested so it never costs safety. And every AI choice is made with the facts.",
+  lasts: "WHY IT LASTS (20 s)\nIt is built to be trusted: honest about uncertainty, it knows its limits and leaves decisions to people, and it works beyond one company, with your own data and open data on Europe's grids.",
+  close: "CLOSE (10 s)\nElectricity is the new currency; now someone keeps the books. Visible, accountable, safe to act on. Thank you."
+};
+
+const $ = s => document.querySelector(s), scenes = [...document.querySelectorAll(".scene")], video = $("#video");
+let cur = -1, lock = 0;
+
+const secs = [...new Set(scenes.map(s => s.dataset.sec))];
+$("#sec").innerHTML = secs.map(s => `<a data-s="${s}">${s}</a>`).join("");
+$("#sec").onclick = e => { const s = e.target.dataset.s; if (s) go(STEPS.findIndex(([id]) => $("#" + id).dataset.sec === s)); };
+$("#dots").innerHTML = scenes.map((s, i) => `<b data-i="${i}" title="${s.id}"></b>`).join("");
+$("#dots").onclick = e => { const i = e.target.dataset.i; if (i != null) go(STEPS.findIndex(([id]) => id === scenes[i].id)); };
+$("#chapters").innerHTML = CHAPTERS.map(([l, t]) => `<button data-t="${t}">${l}</button>`).join("");
+$("#chapters").onclick = e => { const t = e.target.dataset.t; if (t != null) { video.currentTime = +t; video.play(); } };
+video.addEventListener("timeupdate", () => {
+  let k = 0; CHAPTERS.forEach(([, t], i) => { if (video.currentTime >= t) k = i; });
+  document.querySelectorAll("#chapters button").forEach((b, i) => b.classList.toggle("on", i === k));
+});
+
+function go(n) {
+  n = Math.max(0, Math.min(STEPS.length - 1, n));
+  if (n === cur) return;
+  const [id, sub] = STEPS[n], el = $("#" + id);
+  scenes.forEach(s => {
+    s.classList.toggle("on", s === el);
+    if (s !== el) { s.classList.toggle("up", scenes.indexOf(s) < scenes.indexOf(el)); s.classList.remove("s1"); }
+  });
+  el.classList.toggle("s1", sub >= 1);
+  el.classList.remove("up");
+  document.querySelectorAll("#sec a").forEach(a => a.classList.toggle("on", a.dataset.s === el.dataset.sec));
+  document.querySelectorAll("#dots b").forEach((b, i) => b.classList.toggle("on", scenes[i] === el));
+  $("#bar").style.width = (n / (STEPS.length - 1) * 100) + "%";
+  $("#count").textContent = `${n + 1} / ${STEPS.length}`;
+  $("#notes").textContent = NOTES[id] || "";
+  if (n > 0) $("#hint").style.opacity = 0;
+  if (id === "demo") { setTimeout(() => { if (STEPS[cur][0] === "demo") video.play().catch(() => {}); }, 900); }
+  else video.pause();
+  cur = n;
+  history.replaceState(null, "", "#" + (n + 1));
+}
+const next = () => go(cur + 1), prev = () => go(cur - 1);
+
+addEventListener("keydown", e => {
+  if (e.target.tagName === "VIDEO" && [" ", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+  const k = e.key;
+  if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(k)) { e.preventDefault(); next(); }
+  else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+  else if (k === "Home") go(0);
+  else if (k === "End") go(STEPS.length - 1);
+  else if (k === "f" || k === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  else if (k === "n" || k === "N") document.body.classList.toggle("shownotes");
+  else if ((k === "k" || k === "K" || k === "p" || k === "P") && STEPS[cur][0] === "demo") video.paused ? video.play() : video.pause();
+});
+addEventListener("wheel", e => {
+  if (e.target.closest(".notes")) return;
+  if (Math.abs(e.deltaY) < 20 || Date.now() < lock) return;
+  lock = Date.now() + 900; e.deltaY > 0 ? next() : prev();
+}, { passive: true });
+let tx = null, ty = null;
+addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+addEventListener("touchend", e => {
+  if (tx == null || e.target.closest("video")) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) > 50) (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? next() : prev();
+  tx = null;
+}, { passive: true });
+
+go(Math.max(0, (parseInt(location.hash.slice(1)) || 1) - 1));
+</script>
+</body>
+</html>

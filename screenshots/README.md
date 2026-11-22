@@ -8,7 +8,7 @@ sprintd Basel 2026) at 1440 px wide; full-page shots show the whole page. Retake
 | `01-overview.png` | Overview, Leadership dashboard: verdict, period slider, key figures, what changed in the period, target gauges, 3-year outlook, savings by measure, biggest waste, decisions, monthly cost, departments, CO₂ sources, questions answered |
 | `02-overview-it-team.png` | Overview, IT team dashboard: key figures, kWh and CO₂ by grid, cleanest hours, hot list, change runbook, safeguards, watch list |
 | `03-action-plan.png` | Action plan: measures, details of M1, target check gauges, notice deadlines |
-| `04-safeguards.png` | Safeguards: refused and handed-to-a-person actions, rule engine, windows, hidden instructions, contradictions |
+| `04-safeguards.png` | Safeguards: how a change gets to you (four checks), protected times, the crash test on real jobs, stopped ideas with who decides, hidden orders ignored, sources that disagree |
 | `05-insights.png` | Insights: drivers and waste |
 | `06-footprint.png` | Footprint: the ledger by month, department, location and resource |
 | `07-footprint-calculation-panel.png` | How one resource's CO₂ is calculated (side panel) |

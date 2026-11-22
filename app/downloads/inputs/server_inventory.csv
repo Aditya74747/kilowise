@@ -1,0 +1,1 @@
+server_id,provider,region,vcpu,ram_gb,type,owner_cost_center,created,last_login,cpu_utilisation_30d_pct,ram_utilisation_30d_pct,runtime_h_30d,tags,operating_system,patch_level,project_id,environment,criticality
