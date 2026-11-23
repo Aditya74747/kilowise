@@ -13,7 +13,7 @@ Built by team **Mini Militia** for the *Green AI & Data* case (ALTYCA × Basel 2
 [![Watch the Kilowise demo](screenshots/readme/demo-video.jpg)](https://aditya74747.github.io/kilowise/pitch/assets/kilowise_demo_voice.mp4)
 
 ## The result
-
+ 
 For the case company. Expected case: mid factors, Swiss consumption mix, baseline year Sep 2025 – Aug 2026.
 
 | | Target | Kilowise (12 measures) |
