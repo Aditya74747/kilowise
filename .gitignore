@@ -29,6 +29,7 @@ data/raw/external/grid/
 .*
 !.gitignore
 !.env.example
+!.nojekyll
 # Notes for the coding assistant
 CLAUDE.md
 **/CLAUDE.md
@@ -36,3 +37,7 @@ CLAUDE.md
 # Pitch demo video (about 35 MB; rebuild with tools/video/record_demo.py, share it separately)
 pitch/assets/*.mp4
 pitch_video/
+# ElevenLabs clips for the voiced demo video (tools/video/voiceover.md)
+tools/video/voice/
+# Submission upload (built locally)
+Kilowise_submission.zip
