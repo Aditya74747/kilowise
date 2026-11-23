@@ -5,7 +5,7 @@
 Kilowise turns a small company's IT exports (cloud invoices, servers, AI usage, SaaS contracts) into one ledger of
 **cost, energy and location-based CO₂**. It finds what drives them and what is wasted, and recommends a package of
 measures that reaches the targets without switching off anything critical.
-
+ 
 Built by team **Mini Militia** for the *Green AI & Data* case (ALTYCA × Basel 2037) at **sprintd Basel 2026**.
 
 **[Try it live](https://aditya74747.github.io/kilowise/app/index.html)** · **[Watch the demo (2:54, with voice)](https://aditya74747.github.io/kilowise/pitch/assets/kilowise_demo_voice.mp4)**
