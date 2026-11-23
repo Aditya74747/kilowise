@@ -22,9 +22,8 @@ data/raw/external/reference/ember_*.csv
 workspace/
 
 # ---- Public GitHub repository: keep dot-files and assistant notes out ----
-# The case data (synthetic, free to use: sample data ALTYCA, sprintd Basel 2026) is committed; the grid downloads are
-# refetched with `greenledger grid-fetch`
-data/raw/external/grid/
+# The case data (synthetic, free to use: sample data ALTYCA, sprintd Basel 2026) and the Grid page's open data
+# (Ember and Energy-Charts CC BY 4.0, Natural Earth public domain) are committed, so a fresh clone builds everything
 # Dot-files and dot-folders (editor, tool and environment settings); only this file stays
 .*
 !.gitignore
@@ -36,6 +35,7 @@ CLAUDE.md
 
 # Pitch demo video (about 35 MB; rebuild with tools/video/record_demo.py, share it separately)
 pitch/assets/*.mp4
+!pitch/assets/kilowise_demo_voice.mp4
 pitch_video/
 # ElevenLabs clips for the voiced demo video (tools/video/voiceover.md)
 tools/video/voice/
