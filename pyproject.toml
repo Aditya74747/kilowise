@@ -3,8 +3,10 @@ name = "greenledger"
 version = "0.1.0"
 description = "GreenLedger: cost, energy and location-based CO2 ledger for an SME digital estate (sprintd Basel 2026, Green AI & Data)"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
-    { name = "Claude", email = "noreply@anthropic.com" }
+    { name = "Team Mini Militia" }
 ]
 requires-python = ">=3.11"
 dependencies = [

@@ -198,3 +198,16 @@ screenshots/       every page of the app
 - **Given by the case:** the sample data and the two submission templates (ALTYCA, sprintd Basel 2026).
 - **Open source:** pandas, numpy, scikit-learn, pytest; PyTorch, transformers, peft and sentence-transformers for the
   assistant. Typeface: Hanken Grotesk (SIL Open Font License).
+
+## Licence
+
+The code and documentation written by the team are released under the [MIT licence](LICENSE). Material from others
+keeps its own terms:
+
+| What | Terms |
+|---|---|
+| Case data and the two templates (`data/raw/`, `data/raw/extra/`, `outputs/` columns) | Sample data ALTYCA, sprintd Basel 2026: synthetic, provided for the case |
+| Grid data (`data/raw/external/grid/`) | Ember and Fraunhofer ISE Energy-Charts: CC BY 4.0; Natural Earth: public domain |
+| Assistant reference passages and training sets (`data/raw/external/`) | Each dataset's own licence, listed in [data/raw/external/README.md](data/raw/external/README.md) |
+| Typeface Hanken Grotesk (`app/fonts/`, `pitch/assets/`) | SIL Open Font License 1.1 |
+| Brand marks on the connector cards | Simple Icons (CC0); the marks belong to their owners |
